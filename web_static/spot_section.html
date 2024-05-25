@@ -109,6 +109,29 @@
             width: 100%; /* Set canvas width to fill its container */
             height: 100%; /* Set canvas height to fill its container */
         }
+
+        /* Style for the bot container */
+        .bot-container {
+            border: 1px solid black; /* Border around the container */
+            padding: 20px; /* Spacing inside the container */
+            box-sizing: border-box; /* Box-sizing property */
+            cursor: pointer; /* Cursor style when hovering over the container */
+            margin: 10px; /* Margin around the container */
+            width: calc(50% - 24px); /* Width of the container */
+        }
+
+        /* Style for the bot container on hover */
+        .bot-container:hover {
+            background-color: #f0f0f0; /* Background color when hovered over */
+        }
+
+        /* Style for the bot container container */
+        .bot-container-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
     </style>
 </head>
 <body>
@@ -118,39 +141,49 @@
         </div>
         <nav>
             <ul>
-                <li><a id="home" href="#">Home</a></li>
-                <li><a id="bots" href="#">Spot</a></li>
-                <li><a id="settings" href="#">Futures</a></li>
-                <li><a href="settings.html">Settings</a></li>
+                <li><a id="home-link" href="#">Home</a></li>
+                <li><a id="spot-link" href="#">Spot</a></li>
+                <li><a id="futures-link" href="#">Futures</a></li>
+                <li><a id="settings-link" href="#">Settings</a></li>
             </ul>
         </nav>
         <div id="home-section" class="content">
-            <div class="left-container">
-                <div class="left-item">
-                    <h2>Binance</h2>
-                    <p>Number of bots running: 5</p>
-                </div>
-                <div class="left-item">
-                    <h2>Coinbase</h2>
-                    <p>Number of bots running: 3</p>
-                </div>
-            </div>
-            <div class="right-container">
-                <div class="chart-container">
-                    <canvas id="spotProfitChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <canvas id="futuresProfitChart"></canvas>
-                </div>
+            <!-- Content for Home section -->
+        </div>
+        <div id="spot-section" class="content" style="display:none;">
+            <!-- Add content for Spot section here -->
+            <div class="bot-container-container" id="bot-container-container">
+                <!-- Bot containers -->
+                <div class="bot-container" onclick="showBotConfigForm('Bot 1')">Bot 1</div>
+                <div class="bot-container" onclick="showBotConfigForm('Bot 2')">Bot 2</div>
+                <div class="bot-container" onclick="showBotConfigForm('Bot 3')">Bot 3</div>
+                <div class="bot-container" onclick="showBotConfigForm('Bot 4')">Bot 4</div>
+                <div class="bot-container" onclick="showBotConfigForm('Bot 5')">Bot 5</div>
+                <div class="bot-container" onclick="showBotConfigForm('Bot 6')">Bot 6</div>
+                <div class="bot-container" onclick="showBotConfigForm('Bot 7')">Bot 7</div>
+                <div class="bot-container" onclick="showBotConfigForm('Bot 8')">Bot 8</div>
+                <div class="bot-container" onclick="showBotConfigForm('Bot 9')">Bot 9</div>
+                <div class="bot-container" onclick="showBotConfigForm('Bot 10')">Bot 10</div>
             </div>
         </div>
-        <div id="bots-section" class="content" style="display:none;">
-            <h2>Spot Section</h2>
-            <!-- Add content for Spot section here -->
+        <div id="futures-section" class="content" style="display:none;">
+            <!-- Add content for Futures section here -->
+            <div class="bot-container-container" id="futures-bot-container-container">
+                <!-- Bot containers for Futures -->
+                <div class="bot-container" onclick="showBotConfigForm('Futures Bot 1')">Futures Bot 1</div>
+                <div class="bot-container" onclick="showBotConfigForm('Futures Bot 2')">Futures Bot 2</div>
+                <div class="bot-container" onclick="showBotConfigForm('Futures Bot 3')">Futures Bot 3</div>
+                <div class="bot-container" onclick="showBotConfigForm('Futures Bot 4')">Futures Bot 4</div>
+                <div class="bot-container" onclick="showBotConfigForm('Futures Bot 5')">Futures Bot 5</div>
+                <div class="bot-container" onclick="showBotConfigForm('Futures Bot 6')">Futures Bot 6</div>
+                <div class="bot-container" onclick="showBotConfigForm('Futures Bot 7')">Futures Bot 7</div>
+                <div class="bot-container" onclick="showBotConfigForm('Futures Bot 8')">Futures Bot 8</div>
+                <div class="bot-container" onclick="showBotConfigForm('Futures Bot 9')">Futures Bot 9</div>
+                <div class="bot-container" onclick="showBotConfigForm('Futures Bot 10')">Futures Bot 10</div>
+            </div>
         </div>
         <div id="settings-section" class="content" style="display:none;">
-            <h2>Futures Section</h2>
-            <!-- Add content for Futures section here -->
+            <!-- Content for Settings section -->
         </div>
     </div>
     
@@ -170,79 +203,20 @@
         }
 
         // Add event listeners to navigation links
-        document.getElementById('home').addEventListener('click', function() {
+        document.getElementById('home-link').addEventListener('click', function() {
             navigate('home-section');
         });
-        document.getElementById('bots').addEventListener('click', function() {
-            navigate('bots-section');
+        document.getElementById('spot-link').addEventListener('click', function() {
+            navigate('spot-section');
         });
-        document.getElementById('settings').addEventListener('click', function() {
+        document.getElementById('futures-link').addEventListener('click', function() {
+            navigate('futures-section');
+        });
+        document.getElementById('settings-link').addEventListener('click', function() {
             navigate('settings-section');
         });
 
-        // Function to update the profit charts
-        function updateCharts() {
-            // Short forms of the days of the week
-            const daysOfWeekShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-            // Spot profit chart
-            var spotCtx = document.getElementById('spotProfitChart').getContext('2d');
-            var spotChart = new Chart(spotCtx, {
-                type: 'line',
-                data: {
-                    labels: daysOfWeekShort,
-                    datasets: [
-                        {
-                            label: 'Coinbase Profit',
-                            data: [10, 15, 8, 12, 7, 10, 20],
-                            borderColor: 'rgb(54, 162, 235)',
-                            borderWidth: 1,
-                            fill: false
-                        },
-                        {
-                            label: 'Binance Profit',
-                            data: [12, 19, 3, 5, 2, 3, 15],
-                            borderColor: 'rgb(255, 205, 86)',
-                            borderWidth: 1,
-                            fill: false
-                        }
-                    ]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            // Futures profit chart
-            var futuresCtx = document.getElementById('futuresProfitChart').getContext('2d');
-            var futuresChart = new Chart(futuresCtx, {
-                type: 'line',
-                data: {
-                    labels: daysOfWeekShort,
-                    datasets: [{
-                        label: 'Futures Market Profit',
-                        data: [7, 11, 5, 8, 3, 7, 10],
-                        borderColor: 'rgb(54, 162, 235)',
-                        borderWidth: 1,
-                        fill: false
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        // Call the function to update charts
-        updateCharts();
+        // Your additional JavaScript code here
     </script>
 </body>
 </html>
