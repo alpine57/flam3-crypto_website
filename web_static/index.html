@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLAM3 CRYPTO</title>
+    <style>
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-container">
+            <h1 class="header">Crypto Bots</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a id="home-link" href="#">Home</a></li>
+                <li><a id="spot-link" href="#">Spot</a></li>
+                <li><a id="futures-link" href="#">Futures</a></li>
+                <li><a id="settings-link" href="#">Settings</a></li>
+            </ul>
+        </nav>
+        <div id="home-section" class="content" style="display:flex;">
+            <div class="left-container">
+                <div class="left-item">
+                    <h2>Binance</h2>
+                    <p>Number of bots running: 5</p>
+                </div>
+                <div class="left-item">
+                    <h2>Coinbase</h2>
+                    <p>Number of bots running: 3</p>
+                </div>
+            </div>
+            <div class="right-container">
+                <div class="chart-container">
+                    <canvas id="spotProfitChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="futuresProfitChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+             <div id="spot-section" class="content" style="display:none;">
+            <div class="bot-container-container" id="spot-bot-container-container">
+                <div class="bot-container" onclick="showSpotBotConfigForm('Spot Bot 1')">Spot Bot 1</div>
+                <div class="bot-container" onclick="showSpotBotConfigForm('Spot Bot 2')">Spot Bot 2</div>
+                <div class="bot-container" onclick="showSpotBotConfigForm('Spot Bot 3')">Spot Bot 3</div>
+                <div class="bot-container" onclick="showSpotBotConfigForm('Spot Bot 4')">Spot Bot 4</div>
+                <div class="bot-container" onclick="showSpotBotConfigForm('Spot Bot 5')">Spot Bot 5</div>
+                <div class="bot-container" onclick="showSpotBotConfigForm('Spot Bot 6')">Spot Bot 6</div>
+                <div class="bot-container" onclick="showSpotBotConfigForm('Spot Bot 7')">Spot Bot 7</div>
+                <div class="bot-container" onclick="showSpotBotConfigForm('Spot Bot 8')">Spot Bot 8</div>
+                <div class="bot-container" onclick="showSpotBotConfigForm('Spot Bot 9')">Spot Bot 9</div>
+                <div class="bot-container" onclick="showSpotBotConfigForm('Spot Bot 10')">Spot Bot 10</div>
+            </div>
+        </div>
+        <div id="futures-section" class="content" style="display:none;">
+            <div class="bot-container-container" id="futures-bot-container-container">
+                <div class="bot-container" onclick="showFuturesBotConfigForm('Futures Bot 1')">Futures Bot 1</div>
+                <div class="bot-container" onclick="showFuturesBotConfigForm('Futures Bot 2')">Futures Bot 2</div>
+                <div class="bot-container" onclick="showFuturesBotConfigForm('Futures Bot 3')">Futures Bot 3</div>
+                <div class="bot-container" onclick="showFuturesBotConfigForm('Futures Bot 4')">Futures Bot 4</div>
+                <div class="bot-container" onclick="showFuturesBotConfigForm('Futures Bot 5')">Futures Bot 5</div>
+                <div class="bot-container" onclick="showFuturesBotConfigForm('Futures Bot 6')">Futures Bot 6</div>
+                <div class="bot-container" onclick="showFuturesBotConfigForm('Futures Bot 7')">Futures Bot 7</div>
+                <div class="bot-container" onclick="showFuturesBotConfigForm('Futures Bot 8')">Futures Bot 8</div>
+                <div class="bot-container" onclick="showFuturesBotConfigForm('Futures Bot 9')">Futures Bot 9</div>
+                <div class="bot-container" onclick="showFuturesBotConfigForm('Futures Bot 10')">Futures Bot 10</div>
+            </div>
+        </div>
+        <div id="settings-section" class="content" style="display:none;">
+            <div class="additional-content">
+                <h2>Settings</h2>
+                <p>Settings content goes here...</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="spot-bot-config-container" class="form-container">
+        <span class="close-button" onclick="closeSpotBotConfigForm()">X</span>
+        <h2 id="spot-bot-config-header">Spot Bot Configuration</h2>
+        <form id="spot-bot-config-form">
+             <label for="futures-exchange">Exchange:</label>
+            <select id="futures-exchange" name="exchange">
+                <option value="binance">Binance</option>
+                <option value="coinbase">Coinbase</option>
+            </select>
+
+
+            <label for="spot-api-key">API Key</label>
+            <input type="text" id="spot-api-key" name="api-key" required>
+
+            <label for="spot-api-secret">API Secret</label>
+            <input type="text" id="spot-api-secret" name="api-secret" required>
+
+            <label for="spot-trade-amount">Trade Amount</label>
+            <input type="number" id="spot-trade-amount" name="trade-amount" required>
+
+            <label for="spot-trade-pair">Trade Pair</label>
+            <input type="text" id="spot-trade-pair" name="trade-pair" required>
+
+            <label for="spot-time-frame">Time Frame</label>
+            <select id="spot-time-frame" name="time-frame" required>
+                <option value="1m">1m</option>
+                <option value="5m">5m</option>
+                <option value="15m">15m</option>
+                <option value="30m">30m</option>
+                <option value="1h">1h</option>
+                <option value="4h">4h</option>
+                <option value="1d">1d</option>
+            </select>
+
+            <label for="spot-bot-status">Bot Status</label>
+            <label class="switch">
+                <input type="checkbox" id="spot-bot-status" name="bot-status">
+                <span class="slider"></span>
+            </label>
+
+            <button type="submit">Save Configuration</button>
+        </form>
+    </div>
+    <div id="futures-bot-config-container" class="form-container">
+        <span class="close-button" onclick="closeFuturesBotConfigForm()">X</span>
+        <h2 id="futures-bot-config-header">Futures Bot Configuration</h2>
+        <form id="futures-bot-config-form">
+             <label for="futures-exchange">Exchange:</label>
+            <select id="futures-exchange" name="exchange">
+                <option value="binance">Binance</option>
+                <option value="coinbase">Coinbase</option>
+            </select>
+
+            <label for="futures-api-key">API Key</label>
+            <input type="text" id="futures-api-key" name="api-key" required>
+
+            <label for="futures-api-secret">API Secret</label>
+            <input type="text" id="futures-api-secret" name="api-secret" required>
+
+            <label for="futures-trade-amount">Trade Amount</label>
+            <input type="number" id="futures-trade-amount" name="trade-amount" required>
+
+            <label for="futures-trade-pair">Trade Pair</label>
+            <input type="text" id="futures-trade-pair" name="trade-pair" required>
+
+            <label for="leverage">Leverage</label>
+            <input type="number" id="leverage" name="leverage" required>
+
+            <label for="futures-time-frame">Time Frame</label>
+            <select id="futures-time-frame" name="time-frame" required>
+                <option value="1m">1m</option>
+                <option value="5m">5m</option>
+                <option value="15m">15m</option>
+                <option value="30m">30m</option>
+                <option value="1h">1h</option>
+                <option value="4h">4h</option>
+                <option value="1d">1d</option>
+            </select>
+
+            <label for="futures-bot-status">Bot Status</label>
+            <label class="switch">
+                <input type="checkbox" id="futures-bot-status" name="bot-status">
+                <span class="slider"></span>
+            </label>
+
+            <button type="submit">Save Configuration</button>
+        </form>
+    </div>
+
+    <script>
+     </script>
+</body>
+</html>
+
