@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import bcrypt
 import jwt
 import os
@@ -101,5 +101,11 @@ def get_users(current_user):
     users_list = [{'id': user[0], 'username': user[1], 'email': user[2]} for user in users]
     return jsonify(users_list), 200
 
+# Serve static files from the webstatic directory
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('webstatic', path)
+
 if __name__ == '__main__':
     app.run(debug=True)
+
