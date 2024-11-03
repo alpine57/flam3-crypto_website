@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title | default("Login/Signup") }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/login.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>{{ heading | default("Login/Signup") }}</h2>
+        <div class="tabs">
+            <button class="tab-link active" onclick="openForm('login')">Login</button>
+            <button class="tab-link" onclick="openForm('signup')">Signup</button>
+        </div>
+        <div id="login" class="form-container active">
+            <form action="{{ login_action | default('login.php') }}" method="post">
+                <label for="login-username">Username:</label>
+                <input type="text" id="login-username" name="username" required>
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" name="password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+        <div id="signup" class="form-container">
+            <form action="{{ signup_action | default('signup.php') }}" method="post">
+                <label for="signup-username">Username:</label>
+                <input type="text" id="signup-username" name="username" required>
+                <label for="signup-email">Email:</label>
+                <input type="email" id="signup-email" name="email" required>
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" name="password" required>
+                <button type="submit">Signup</button>
+            </form>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+</body>
+</html>
+

@@ -91,3 +91,6 @@ def get_users(current_user):
     users_list = [{'id': user[0], 'username': user[1], 'email': user[2]} for user in users]
     return jsonify(users_list), 200
 
+@main.route('/')
+def index():
+    return render_template('index.html')
