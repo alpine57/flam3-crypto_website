@@ -1,16 +1,12 @@
-from flask import Blueprint, jsonify, request, render_template
+from flask import Blueprint, jsonify, request, render_template, current_app
 import bcrypt
 import jwt
 from functools import wraps
 from datetime import datetime, timedelta
 import psycopg2
 import os
-from flask import Blueprint
 
 bp = Blueprint('main', __name__)
-
-
-
 
 DATABASE_URL = os.getenv('DATABASE_URL', 'your_database_url_here')
 
@@ -27,18 +23,18 @@ def token_required(f):
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
         try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
             current_user = data['username']
         except Exception:
             return jsonify({'message': 'Token is invalid!'}), 401
         return f(current_user, *args, **kwargs)
     return decorated
 
-@main.route('/')
+@bp.route('/')
 def index():
     return render_template('index.html')
 
-@main.route('/register', methods=['POST'])
+@bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
     username = data['username']
@@ -62,7 +58,7 @@ def register():
 
     return jsonify({'message': 'User registered successfully!'}), 201
 
-@main.route('/login', methods=['POST'])
+@bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data['username']
@@ -81,16 +77,16 @@ def login():
     token = jwt.encode({
         'username': user[1],
         'exp': datetime.utcnow() + timedelta(hours=1)
-    }, app.config['SECRET_KEY'], algorithm="HS256")
+    }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
     return jsonify({'token': token})
 
-@main.route('/protected', methods=['GET'])
+@bp.route('/protected', methods=['GET'])
 @token_required
 def protected_route(current_user):
     return jsonify({'message': f'Hello, {current_user}!', 'logged_in_as': current_user})
 
-@main.route('/users', methods=['GET'])
+@bp.route('/users', methods=['GET'])
 @token_required
 def get_users(current_user):
     if current_user != 'admin':
@@ -105,3 +101,4 @@ def get_users(current_user):
 
     users_list = [{'id': user[0], 'username': user[1], 'email': user[2]} for user in users]
     return jsonify(users_list), 200
+
