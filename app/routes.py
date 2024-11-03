@@ -5,8 +5,12 @@ from functools import wraps
 from datetime import datetime, timedelta
 import psycopg2
 import os
+from flask import Blueprint
 
-main = Blueprint('main', __name__)
+bp = Blueprint('main', __name__)
+
+
+
 
 DATABASE_URL = os.getenv('DATABASE_URL', 'your_database_url_here')
 
