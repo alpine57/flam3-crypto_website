@@ -1,11 +1,18 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request, render_template
 import bcrypt
 import jwt
 from functools import wraps
 from datetime import datetime, timedelta
-from . import get_db_connection
+import psycopg2
+import os
 
-bp = Blueprint('main', __name__)
+main = Blueprint('main', __name__)
+
+DATABASE_URL = os.getenv('DATABASE_URL', 'your_database_url_here')
+
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
 
 def token_required(f):
     @wraps(f)
@@ -16,14 +23,18 @@ def token_required(f):
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
         try:
-            data = jwt.decode(token, 'your_secret_key', algorithms=["HS256"])  # Use your actual secret key
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
             current_user = data['username']
         except Exception:
             return jsonify({'message': 'Token is invalid!'}), 401
         return f(current_user, *args, **kwargs)
     return decorated
 
-@bp.route('/register', methods=['POST'])
+@main.route('/')
+def index():
+    return render_template('index.html')
+
+@main.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
     username = data['username']
@@ -47,7 +58,7 @@ def register():
 
     return jsonify({'message': 'User registered successfully!'}), 201
 
-@bp.route('/login', methods=['POST'])
+@main.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data['username']
@@ -66,31 +77,27 @@ def login():
     token = jwt.encode({
         'username': user[1],
         'exp': datetime.utcnow() + timedelta(hours=1)
-    }, 'your_secret_key', algorithm="HS256")  # Use your actual secret key
+    }, app.config['SECRET_KEY'], algorithm="HS256")
 
     return jsonify({'token': token})
 
-@bp.route('/protected', methods=['GET'])
+@main.route('/protected', methods=['GET'])
 @token_required
 def protected_route(current_user):
     return jsonify({'message': f'Hello, {current_user}!', 'logged_in_as': current_user})
 
-@bp.route('/users', methods=['GET'])
+@main.route('/users', methods=['GET'])
 @token_required
 def get_users(current_user):
     if current_user != 'admin':
         return jsonify({'message': 'Admin access required!'}), 403
-    
+
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT id, username, email FROM users")
     users = cur.fetchall()
     cur.close()
     conn.close()
-    
+
     users_list = [{'id': user[0], 'username': user[1], 'email': user[2]} for user in users]
     return jsonify(users_list), 200
-
-@main.route('/')
-def index():
-    return render_template('index.html')
