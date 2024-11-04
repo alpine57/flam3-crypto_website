@@ -3,187 +3,359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Bot Management</title>
+    <title>FLAM3 FINANCIAL</title>
     <style>
-        /* Basic Reset */
-        * {
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-
-        /* General Styles */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
+        
+        .container {
+            width: calc(100vw - 80px);
+            height: calc(100vh - 80px);
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             display: flex;
             flex-direction: column;
+            justify-content: flex-start;
             align-items: center;
             padding: 20px;
-        }
-
-        h2 {
-            margin-bottom: 20px;
-        }
-
-        /* Container Styles */
-        .content {
-            width: 80%;
-            margin: 20px 0;
-        }
-
-        /* Bot Container */
-        .bot-container-container {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .bot-container {
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: #fff;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .bot-container:hover {
-            background-color: #0056b3;
-        }
-
-        /* Form Styles */
-        .form-container {
-            display: none;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 500px;
-        }
-
-        .form-container h2 {
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-
-        .form-container label {
-            display: block;
-            margin-top: 10px;
-        }
-
-        .form-container input,
-        .form-container select {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-
-        /* Close Button */
-        .close-button {
-            float: right;
-            cursor: pointer;
-            font-size: 18px;
-            color: #333;
-            padding: 5px;
-        }
-
-        .close-button:hover {
-            color: #ff0000;
-        }
-
-        /* Toggle Switch */
-        .switch {
             position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
+            overflow: auto;
         }
 
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+        .header-container {
+            margin-bottom: 20px;
+            text-align: center;
         }
 
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
+        .header {
+            font-size: 24px;
         }
 
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 4px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
+       
+.additional-content {
+    font-style: italic;
+}
 
-        input:checked + .slider {
-            background-color: #007bff;
-        }
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
 
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
+nav ul li {
+    margin-right: 20px;
+}
+
+nav ul li:last-child {
+    margin-right: 0;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #333;
+}
+
+.content {
+    display: none; /* Hide by default */
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+}
+
+.left-container {
+    display: flex;
+    flex-direction: column;
+    width: 45%;
+}
+
+.left-item {
+    height: 120px;
+    background-color: #ddd;
+    margin-bottom: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.left-item p {
+    margin: 5px 0;
+}
+
+.right-container {
+    width: 45%;
+    background-color: #ddd;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.chart-container {
+    height: 50%; /* Adjust this as necessary */
+    margin-bottom: 20px;
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+} 
+/*spot section css*/
+ .bot-container {
+        border: 1px solid black;
+        padding: 20px;
+        box-sizing: border-box;
+        cursor: pointer;
+        margin: 10px;
+        width: calc(50% - 24px);
+    }
+
+    .bot-container:hover {
+        background-color: #f0f0f0;
+    }
+
+    .bot-container-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .form-container {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
+        padding: 20px;
+        box-sizing: border-box;
+        overflow-y: auto;
+    }
+
+    .form-container h2 {
+        margin-top: 0;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+     /* Switch styling */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+    .currency-pair-container {
+        margin-bottom: 10px;
+    }
+
+    .currency-pair-label {
+        display: inline-block;
+        width: 100px;
+        margin-bottom: 5px;
+    }
+
+    .currency-pair-input {
+        width: calc(100% - 120px);
+        margin-bottom: 5px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .close-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+    }
     </style>
 </head>
 <body>
+    <div class="container">
+        <div class="header-container">
+            <h1 class="header">Flam3 Crypto Bots</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a id="home-link" href="#">Home</a></li>
+                <li><a id="spot-link" href="#">Spot</a></li>
+                <li><a id="futures-link" href="#">Futures</a></li>
+                <li><a id="settings-link" href="#">Settings</a></li>
+            </ul>
+        </nav>
+        <div id="home-section" class="content" style="display:flex;">
+            <div class="left-container">
+                <div class="left-item">
+                    <h2>Binance</h2>
+                    <p>Number of bots running: 5</p>
+                     <p>Balance: $10,000</p>
+                </div>
+                <div class="left-item">
+                    <h2>Coinbase</h2>
+                    <p>Number of bots running: 3</p>
+                    <p>Balance: $10,000</p>
+                </div>
+            </div>
+            <div class="right-container">
+                <div class="chart-container">
+                    <canvas id="spotProfitChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="futuresProfitChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+        
+             <div id="spot-section" class="content" style="display:none;">
+    <div class="bot-container-container" id="spot-bot-container-container">
+        <div class="bot-container" data-bot-id="spot-1" onclick="showSpotBotConfigForm('Spot Bot 1')">Spot Bot 1</div>
+        <div class="bot-container" data-bot-id="spot-2" onclick="showSpotBotConfigForm('Spot Bot 2')">Spot Bot 2</div>
+        <div class="bot-container" data-bot-id="spot-3" onclick="showSpotBotConfigForm('Spot Bot 3')">Spot Bot 3</div>
+        <div class="bot-container" data-bot-id="spot-4" onclick="showSpotBotConfigForm('Spot Bot 4')">Spot Bot 4</div>
+        <div class="bot-container" data-bot-id="spot-5" onclick="showSpotBotConfigForm('Spot Bot 5')">Spot Bot 5</div>
+        <div class="bot-container" data-bot-id="spot-6" onclick="showSpotBotConfigForm('Spot Bot 6')">Spot Bot 6</div>
+        <div class="bot-container" data-bot-id="spot-7" onclick="showSpotBotConfigForm('Spot Bot 7')">Spot Bot 7</div>
+        <div class="bot-container" data-bot-id="spot-8" onclick="showSpotBotConfigForm('Spot Bot 8')">Spot Bot 8</div>
+        <div class="bot-container" data-bot-id="spot-9" onclick="showSpotBotConfigForm('Spot Bot 9')">Spot Bot 9</div>
+        <div class="bot-container" data-bot-id="spot-10" onclick="showSpotBotConfigForm('Spot Bot 10')">Spot Bot 10</div>
+    </div>
+</div>
+<div id="futures-section" class="content" style="display:none;">
+    <div class="bot-container-container" id="futures-bot-container-container">
+        <div class="bot-container" data-bot-id="futures-1" onclick="showFuturesBotConfigForm('Futures Bot 1')">Futures Bot 1</div>
+        <div class="bot-container" data-bot-id="futures-2" onclick="showFuturesBotConfigForm('Futures Bot 2')">Futures Bot 2</div>
+        <div class="bot-container" data-bot-id="futures-3" onclick="showFuturesBotConfigForm('Futures Bot 3')">Futures Bot 3</div>
+        <div class="bot-container" data-bot-id="futures-4" onclick="showFuturesBotConfigForm('Futures Bot 4')">Futures Bot 4</div>
+        <div class="bot-container" data-bot-id="futures-5" onclick="showFuturesBotConfigForm('Futures Bot 5')">Futures Bot 5</div>
+        <div class="bot-container" data-bot-id="futures-6" onclick="showFuturesBotConfigForm('Futures Bot 6')">Futures Bot 6</div>
+        <div class="bot-container" data-bot-id="futures-7" onclick="showFuturesBotConfigForm('Futures Bot 7')">Futures Bot 7</div>
+        <div class="bot-container" data-bot-id="futures-8" onclick="showFuturesBotConfigForm('Futures Bot 8')">Futures Bot 8</div>
+        <div class="bot-container" data-bot-id="futures-9" onclick="showFuturesBotConfigForm('Futures Bot 9')">Futures Bot 9</div>
+        <div class="bot-container" data-bot-id="futures-10" onclick="showFuturesBotConfigForm('Futures Bot 10')">Futures Bot 10</div>
+    </div>
+</div>
 
-    <h1>Trading Bot Management</h1>
-
-    <!-- Futures Section -->
-    <div id="futures-section" class="content" style="display:none;">
-        <h2>Futures Bots</h2>
-        <div class="bot-container-container" id="futures-bot-container-container">
-            <!-- Futures bots will be populated here -->
-            {% for bot in futures_bots %}
-            <div class="bot-container" data-bot-id="{{ bot.id }}" onclick="showFuturesBotConfigForm('{{ bot.name }}')">{{ bot.name }}</div>
-            {% endfor %}
+        <div id="settings-section" class="content" style="display:none;">
+            <div class="additional-content">
+                <h2>Settings</h2>
+                <p>Settings content goes here...</p>
+            </div>
         </div>
     </div>
-
-    <!-- Settings Section -->
-    <div id="settings-section" class="content" style="display:none;">
-        <div class="additional-content">
-            <h2>Settings</h2>
-            <p>Settings content goes here...</p>
-        </div>
-    </div>
-
-    <!-- Spot Bot Configuration Form -->
+    
     <div id="spot-bot-config-container" class="form-container">
         <span class="close-button" onclick="closeSpotBotConfigForm()">X</span>
         <h2 id="spot-bot-config-header">Spot Bot Configuration</h2>
         <form id="spot-bot-config-form">
-            <label for="spot-exchange">Exchange:</label>
-            <select id="spot-exchange" name="exchange">
+             <label for="futures-exchange">Exchange:</label>
+            <select id="futures-exchange" name="exchange">
                 <option value="binance">Binance</option>
                 <option value="coinbase">Coinbase</option>
             </select>
+
+
             <label for="spot-api-key">API Key</label>
             <input type="text" id="spot-api-key" name="api-key" required>
+
             <label for="spot-api-secret">API Secret</label>
             <input type="text" id="spot-api-secret" name="api-secret" required>
+
             <label for="spot-trade-amount">Trade Amount</label>
             <input type="number" id="spot-trade-amount" name="trade-amount" required>
+
             <label for="spot-trade-pair">Trade Pair</label>
             <input type="text" id="spot-trade-pair" name="trade-pair" required>
+
             <label for="spot-time-frame">Time Frame</label>
             <select id="spot-time-frame" name="time-frame" required>
                 <option value="1m">1m</option>
@@ -194,35 +366,41 @@
                 <option value="4h">4h</option>
                 <option value="1d">1d</option>
             </select>
+
             <label for="spot-bot-status">Bot Status</label>
             <label class="switch">
                 <input type="checkbox" id="spot-bot-status" name="bot-status">
                 <span class="slider"></span>
             </label>
+
             <button type="submit">Save Configuration</button>
         </form>
     </div>
-
-    <!-- Futures Bot Configuration Form -->
     <div id="futures-bot-config-container" class="form-container">
         <span class="close-button" onclick="closeFuturesBotConfigForm()">X</span>
         <h2 id="futures-bot-config-header">Futures Bot Configuration</h2>
         <form id="futures-bot-config-form">
-            <label for="futures-exchange">Exchange:</label>
+             <label for="futures-exchange">Exchange:</label>
             <select id="futures-exchange" name="exchange">
                 <option value="binance">Binance</option>
                 <option value="coinbase">Coinbase</option>
             </select>
+
             <label for="futures-api-key">API Key</label>
             <input type="text" id="futures-api-key" name="api-key" required>
+
             <label for="futures-api-secret">API Secret</label>
             <input type="text" id="futures-api-secret" name="api-secret" required>
+
             <label for="futures-trade-amount">Trade Amount</label>
             <input type="number" id="futures-trade-amount" name="trade-amount" required>
+
             <label for="futures-trade-pair">Trade Pair</label>
             <input type="text" id="futures-trade-pair" name="trade-pair" required>
+
             <label for="leverage">Leverage</label>
             <input type="number" id="leverage" name="leverage" required>
+
             <label for="futures-time-frame">Time Frame</label>
             <select id="futures-time-frame" name="time-frame" required>
                 <option value="1m">1m</option>
@@ -233,45 +411,266 @@
                 <option value="4h">4h</option>
                 <option value="1d">1d</option>
             </select>
+
             <label for="futures-bot-status">Bot Status</label>
             <label class="switch">
                 <input type="checkbox" id="futures-bot-status" name="bot-status">
                 <span class="slider"></span>
             </label>
+
             <button type="submit">Save Configuration</button>
         </form>
     </div>
 
     <script>
-        function showSection(section) {
+        function showSection(sectionId) {
             const sections = document.querySelectorAll('.content');
-            sections.forEach(sec => {
-                sec.style.display = 'none'; // Hide all sections
+            sections.forEach(section => {
+                section.style.display = section.id === sectionId ? 'flex' : 'none';
             });
-            document.getElementById(section + '-section').style.display = 'block'; // Show the selected section
         }
 
-        function showSpotBotConfigForm(botName) {
-            document.getElementById('spot-bot-config-header').textContent = botName + ' Configuration';
-            document.getElementById('spot-bot-config-container').style.display = 'block'; // Show the configuration form
+        document.getElementById('home-link').addEventListener('click', function(event) {
+    event.preventDefault();
+    showSection('home-section');
+});
+
+document.getElementById('spot-link').addEventListener('click', function(event) {
+    event.preventDefault();
+    showSection('spot-section');
+});
+
+document.getElementById('futures-link').addEventListener('click', function(event) {
+    event.preventDefault();
+    showSection('futures-section');
+});
+
+document.getElementById('settings-link').addEventListener('click', function(event) {
+    event.preventDefault();
+    showSection('settings-section');
+});
+
+function showSpotBotConfigForm(botName) {
+    document.getElementById('spot-bot-config-header').innerText = botName + ' Configuration';
+    document.getElementById('spot-bot-config-container').style.display = 'block';
+}
+
+function closeSpotBotConfigForm() {
+    document.getElementById('spot-bot-config-container').style.display = 'none';
+}
+
+function showFuturesBotConfigForm(botName) {
+    document.getElementById('futures-bot-config-header').innerText = botName + ' Configuration';
+    document.getElementById('futures-bot-config-container').style.display = 'block';
+}
+
+function closeFuturesBotConfigForm() {
+    document.getElementById('futures-bot-config-container').style.display = 'none';
+}
+
+document.getElementById('spot-bot-config-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const exchange = document.getElementById('spot-exchange').value;
+    const apiKey = document.getElementById('spot-api-key').value;
+    const apiSecret = document.getElementById('spot-api-secret').value;
+    const tradeAmount = document.getElementById('spot-trade-amount').value;
+    const tradePair = document.getElementById('spot-trade-pair').value;
+    const timeFrame = document.getElementById('spot-time-frame').value;
+    const botStatus = document.getElementById('spot-bot-status').checked;
+
+    const spotBotConfig = {
+        exchange,
+        apiKey,
+        apiSecret,
+        tradeAmount,
+        tradePair,
+        timeFrame,
+        botStatus
+    };
+
+    console.log('Spot Bot Configuration:', spotBotConfig);
+
+    // Send the configuration to the backend
+    try {
+        const response = await fetch('/api/bot/spot/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(spotBotConfig)
+        });
+
+        const result = await response.json();
+        console.log('Server Response:', result);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+
+    closeSpotBotConfigForm();
+});
+
+document.getElementById('futures-bot-config-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const exchange = document.getElementById('futures-exchange').value;
+    const apiKey = document.getElementById('futures-api-key').value;
+    const apiSecret = document.getElementById('futures-api-secret').value;
+    const tradeAmount = document.getElementById('futures-trade-amount').value;
+    const tradePair = document.getElementById('futures-trade-pair').value;
+    const leverage = document.getElementById('leverage').value;
+    const timeFrame = document.getElementById('futures-time-frame').value;
+    const botStatus = document.getElementById('futures-bot-status').checked;
+
+    const futuresBotConfig = {
+        exchange,
+        apiKey,
+        apiSecret,
+        tradeAmount,
+        tradePair,
+        leverage,
+        timeFrame,
+        botStatus
+    };
+
+    console.log('Futures Bot Configuration:', futuresBotConfig);
+
+    // Send the configuration to the backend
+    try {
+        const response = await fetch('/api/bot/futures/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(futuresBotConfig)
+        });
+
+        const result = await response.json();
+        console.log('Server Response:', result);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+
+    closeFuturesBotConfigForm();
+});
+
+// Handle Spot Bot status change
+document.getElementById('spot-bot-status').addEventListener('change', async function() {
+    const botStatus = this.checked;
+
+    try {
+        const response = await fetch('/api/bot/spot/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: botStatus })
+        });
+
+        const result = await response.json();
+        console.log('Spot Bot Status Updated:', result);
+
+        if (result.success) {
+            alert(`Spot bot is now ${botStatus ? 'ON' : 'OFF'}`);
+        } else {
+            alert('Failed to update bot status.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while updating the bot status.');
+    }
+});
+
+// Handle Futures Bot status change
+document.getElementById('futures-bot-status').addEventListener('change', async function() {
+    const botStatus = this.checked;
+
+    try {
+        const response = await fetch('/api/bot/futures/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: botStatus })
+        });
+
+        const result = await response.json();
+        console.log('Futures Bot Status Updated:', result);
+
+        if (result.success) {
+            alert(`Futures bot is now ${botStatus ? 'ON' : 'OFF'}`);
+        } else {
+            alert('Failed to update bot status.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while updating the bot status.');
+    }
+});
+
+ // Function to update the profit charts
+        function updateCharts() {
+            // Short forms of the days of the week
+            const daysOfWeekShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            // Spot profit chart
+            var spotCtx = document.getElementById('spotProfitChart').getContext('2d');
+            var spotChart = new Chart(spotCtx, {
+                type: 'line',
+                data: {
+                    labels: daysOfWeekShort,
+                    datasets: [
+                        {
+                            label: 'Coinbase Profit',
+                            data: [10, 15, 8, 12, 7, 10, 20],
+                            borderColor: 'rgb(54, 162, 235)',
+                            borderWidth: 1,
+                            fill: false
+                        },
+                        {
+                            label: 'Binance Profit',
+                            data: [12, 19, 3, 5, 2, 3, 15],
+                            borderColor: 'rgb(255, 205, 86)',
+                            borderWidth: 1,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Futures profit chart
+            var futuresCtx = document.getElementById('futuresProfitChart').getContext('2d');
+            var futuresChart = new Chart(futuresCtx, {
+                type: 'line',
+                data: {
+                    labels: daysOfWeekShort,
+                    datasets: [{
+                        label: 'Futures Market Profit',
+                        data: [7, 11, 5, 8, 3, 7, 10],
+                        borderColor: 'rgb(54, 162, 235)',
+                        borderWidth: 1,
+                        fill: false
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         }
 
-        function closeSpotBotConfigForm() {
-            document.getElementById('spot-bot-config-container').style.display = 'none'; // Hide the configuration form
-        }
-
-        function showFuturesBotConfigForm(botName) {
-            document.getElementById('futures-bot-config-header').textContent = botName + ' Configuration';
-            document.getElementById('futures-bot-config-container').style.display = 'block'; // Show the configuration form
-        }
-
-        function closeFuturesBotConfigForm() {
-            document.getElementById('futures-bot-config-container').style.display = 'none'; // Hide the configuration form
-        }
-
-        // Show home section on load
-        showSection('futures'); // Default view can be changed as needed
+        // Call the function to update charts
+        updateCharts();
     </script>
 </body>
 </html>
-
