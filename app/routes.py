@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, current_app
+from flask import Blueprint, jsonify, request, render_template, current_app, redirect, url_for
 import bcrypt
 import jwt
 from functools import wraps
@@ -32,7 +32,49 @@ def token_required(f):
 
 @bp.route('/')
 def index():
+    token = request.cookies.get('token')
+    if not token:
+        # Redirect to login page if token is missing
+        return redirect(url_for('login_signup.html'))
+    try:
+        jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+    except Exception:
+        # Redirect to login page if token is invalid
+        return redirect(url_for('login_signup.html'))
     return render_template('index.html')
+
+@bp.route('/login', methods=['POST', 'GET'])
+def login():
+    if request.method == 'POST':
+        data = request.get_json()
+        username = data['username']
+        password = data['password']
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM users WHERE username = %s", (username,))
+        user = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if not user or not bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
+            return jsonify({'message': 'Invalid credentials!'}), 401
+
+        token = jwt.encode({
+            'username': user[1],
+            'exp': datetime.utcnow() + timedelta(hours=1)
+        }, current_app.config['SECRET_KEY'], algorithm="HS256")
+
+        response = jsonify({'message': 'Login successful!'})
+        response.set_cookie('token', token)
+        return response
+
+    # Render login page if request is GET
+    return render_template('login.html')
+
+@bp.route('/login_page')
+def login_page():
+    return render_template('login.html')
 
 @bp.route('/register', methods=['POST'])
 def register():
@@ -57,29 +99,6 @@ def register():
     conn.close()
 
     return jsonify({'message': 'User registered successfully!'}), 201
-
-@bp.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    username = data['username']
-    password = data['password']
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM users WHERE username = %s", (username,))
-    user = cur.fetchone()
-    cur.close()
-    conn.close()
-
-    if not user or not bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
-        return jsonify({'message': 'Invalid credentials!'}), 401
-
-    token = jwt.encode({
-        'username': user[1],
-        'exp': datetime.utcnow() + timedelta(hours=1)
-    }, current_app.config['SECRET_KEY'], algorithm="HS256")
-
-    return jsonify({'token': token})
 
 @bp.route('/protected', methods=['GET'])
 @token_required
