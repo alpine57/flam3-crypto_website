@@ -35,12 +35,12 @@ def index():
     token = request.cookies.get('token')
     if not token:
         # Redirect to login page if token is missing
-        return redirect(url_for('login_signup'))
+        return redirect(url_for('main.login_page'))
     try:
         jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
     except Exception:
         # Redirect to login page if token is invalid
-        return redirect(url_for('login_signup'))
+        return redirect(url_for('main.login_page'))
     return render_template('index.html')
 
 @bp.route('/login', methods=['POST', 'GET'])
