@@ -8,7 +8,7 @@ import os
 
 bp = Blueprint('main', __name__)
 
-DATABASE_URL = os.getenv('DATABASE_URL', 'your_database_url_here')
+DATABASE_URL = os.getenv('postgresql://flame_crypto_user:96yoBV9vkxXQLJM8MjWOSNYHwGqkQYXw@dpg-csl7uejv2p9s73b4bjbg-a.oregon-postgres.render.com/flame_crypto')
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
@@ -17,31 +17,26 @@ def get_db_connection():
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = None
-        if 'Authorization' in request.headers:
-            token = request.headers['Authorization'].split()[1]
+        token = request.cookies.get('token')  # Retrieve token from cookies
+
         if not token:
-            return jsonify({'message': 'Token is missing!'}), 401
+            return redirect(url_for('main.login_page'))  # Redirect if token is missing
+
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
             current_user = data['username']
+        except jwt.ExpiredSignatureError:
+            return redirect(url_for('main.login_page'))  # Redirect if token is expired
         except Exception:
-            return jsonify({'message': 'Token is invalid!'}), 401
+            return redirect(url_for('main.login_page'))  # Redirect if token is invalid
+
         return f(current_user, *args, **kwargs)
     return decorated
 
 @bp.route('/')
-def index():
-    token = request.cookies.get('token')
-    if not token:
-        # Redirect to login page if token is missing
-        return redirect(url_for('main.login_page'))
-    try:
-        jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
-    except Exception:
-        # Redirect to login page if token is invalid
-        return redirect(url_for('main.login_page'))
-    return render_template('index.html')
+@token_required
+def index(current_user):
+    return render_template('index.html', username=current_user)
 
 @bp.route('/login', methods=['POST', 'GET'])
 def login():
@@ -58,18 +53,20 @@ def login():
         conn.close()
 
         if not user or not bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
-            return jsonify({'message': 'Invalid credentials!'}), 401
+            return render_template('login.html', message='Invalid credentials!')
 
+        # Generate JWT token
         token = jwt.encode({
             'username': user[1],
             'exp': datetime.utcnow() + timedelta(hours=1)
         }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-        response = jsonify({'message': 'Login successful!'})
+        # Redirect to homepage with token set in cookies
+        response = redirect(url_for('main.index'))
         response.set_cookie('token', token)
         return response
 
-    # Render login page if request is GET
+    # Render login page for GET request
     return render_template('login.html')
 
 @bp.route('/login_page')
@@ -98,26 +95,19 @@ def register():
     cur.close()
     conn.close()
 
-    return jsonify({'message': 'User registered successfully!'}), 201
+    # Automatically log in the user by generating a token
+    token = jwt.encode({
+        'username': username,
+        'exp': datetime.utcnow() + timedelta(hours=1)
+    }, current_app.config['SECRET_KEY'], algorithm="HS256")
+
+    # Set the token as a cookie and redirect to homepage
+    response = redirect(url_for('main.index'))
+    response.set_cookie('token', token)
+    return response
 
 @bp.route('/protected', methods=['GET'])
 @token_required
 def protected_route(current_user):
     return jsonify({'message': f'Hello, {current_user}!', 'logged_in_as': current_user})
-
-@bp.route('/users', methods=['GET'])
-@token_required
-def get_users(current_user):
-    if current_user != 'admin':
-        return jsonify({'message': 'Admin access required!'}), 403
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT id, username, email FROM users")
-    users = cur.fetchall()
-    cur.close()
-    conn.close()
-
-    users_list = [{'id': user[0], 'username': user[1], 'email': user[2]} for user in users]
-    return jsonify(users_list), 200
 
