@@ -14,7 +14,8 @@
             <button class="tab-link" onclick="openForm('signup')">Signup</button>
         </div>
         <div id="login" class="form-container active">
-            <form action="{{ login_action | default('login.php') }}" method="post">
+            <!-- Login form with Flask route -->
+            <form action="{{ url_for('main.login') }}" method="post">
                 <label for="login-username">Username:</label>
                 <input type="text" id="login-username" name="username" required>
                 <label for="login-password">Password:</label>
@@ -23,7 +24,8 @@
             </form>
         </div>
         <div id="signup" class="form-container">
-            <form action="{{ signup_action | default('signup.php') }}" method="post">
+            <!-- Signup form with Flask route -->
+            <form action="{{ url_for('main.register') }}" method="post">
                 <label for="signup-username">Username:</label>
                 <input type="text" id="signup-username" name="username" required>
                 <label for="signup-email">Email:</label>
