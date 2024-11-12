@@ -15,7 +15,7 @@
         </div>
         <div id="login" class="form-container active">
             <!-- Login form with Flask route -->
-            <form action="{{ url_for('main.login') }}" method="post">
+            <form action="{{ url_for('main.login') }}" method="POST">
                 <label for="login-username">Username:</label>
                 <input type="text" id="login-username" name="username" required>
                 <label for="login-password">Password:</label>
@@ -25,7 +25,7 @@
         </div>
         <div id="signup" class="form-container">
             <!-- Signup form with Flask route -->
-            <form action="{{ url_for('main.register') }}" method="post">
+            <form action="{{ url_for('main.register') }}" method="POST">
                 <label for="signup-username">Username:</label>
                 <input type="text" id="signup-username" name="username" required>
                 <label for="signup-email">Email:</label>
