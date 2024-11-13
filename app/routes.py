@@ -86,3 +86,8 @@ def register():
     response.set_cookie('token', token)
     return response
 
+
+@bp.route('/')
+def index():
+    return render_template('index.html')
+
