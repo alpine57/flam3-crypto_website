@@ -2,6 +2,13 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
 class BotConfiguration(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     bot_name = db.Column(db.String(80), unique=True, nullable=False)
