@@ -8,11 +8,17 @@ import os
 
 bp = Blueprint('main', __name__)
 
+# Ensure DATABASE_URL is correctly loaded from environment variables
 DATABASE_URL = os.getenv('postgresql://flame_crypto_user:96yoBV9vkxXQLJM8MjWOSNYHwGqkQYXw@dpg-csl7uejv2p9s73b4bjbg-a.oregon-postgres.render.com/flame_crypto')
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set. Ensure it is set in the environment variables.")
 
 def get_db_connection():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    except Exception as e:
+        raise RuntimeError(f"Database connection failed: {str(e)}")
 
 def token_required(f):
     @wraps(f)
@@ -27,7 +33,7 @@ def token_required(f):
             current_user = data['username']
         except jwt.ExpiredSignatureError:
             return redirect(url_for('main.login_page'))  # Redirect if token is expired
-        except Exception:
+        except jwt.InvalidTokenError:
             return redirect(url_for('main.login_page'))  # Redirect if token is invalid
 
         return f(current_user, *args, **kwargs)
@@ -41,9 +47,19 @@ def index(current_user):
 @bp.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
-        data = request.get_json()
-        username = data['username']
-        password = data['password']
+        # Check if Content-Type is correct
+        if request.content_type != 'application/json':
+            return jsonify({'message': 'Content-Type must be application/json'}), 415
+
+        data = request.get_json(silent=True)  # Use silent=True to handle missing/invalid JSON
+        if not data:
+            return jsonify({'message': 'Invalid or missing JSON data'}), 400
+
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return jsonify({'message': 'Username and password are required'}), 400
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -53,7 +69,7 @@ def login():
         conn.close()
 
         if not user or not bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
-            return render_template('login.html', message='Invalid credentials!')
+            return jsonify({'message': 'Invalid credentials!'}), 401
 
         # Generate JWT token
         token = jwt.encode({
@@ -75,10 +91,20 @@ def login_page():
 
 @bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    username = data['username']
-    email = data['email']
-    password = data['password']
+    # Check if Content-Type is correct
+    if request.content_type != 'application/json':
+        return jsonify({'message': 'Content-Type must be application/json'}), 415
+
+    data = request.get_json(silent=True)  # Use silent=True to handle missing/invalid JSON
+    if not data:
+        return jsonify({'message': 'Invalid or missing JSON data'}), 400
+
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not username or not email or not password:
+        return jsonify({'message': 'Username, email, and password are required'}), 400
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -86,6 +112,8 @@ def register():
     user = cur.fetchone()
 
     if user:
+        cur.close()
+        conn.close()
         return jsonify({'message': 'Username already exists!'}), 400
 
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -110,3 +138,4 @@ def register():
 @token_required
 def protected_route(current_user):
     return jsonify({'message': f'Hello, {current_user}!', 'logged_in_as': current_user})
+
