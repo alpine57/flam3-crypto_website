@@ -26,20 +26,20 @@ function openForm(formName) {
         loginForm.classList.remove('active');
     }
 
+    // Update active tab link
     tabLinks.forEach(link => link.classList.remove('active'));
     document.querySelector(`button[onclick="openForm('${formName}')"]`).classList.add('active');
 }
 
-// Handle Login form submission
-document.getElementById('loginForm').addEventListener('submit', function(event) {
-    event.preventDefault();  // Prevent the default form submission
-
+// Function to handle Login submission
+function loginUser() {
     const username = document.getElementById('login-username').value;
     const password = document.getElementById('login-password').value;
+    const errorMessage = document.querySelector('#login .error-message');
 
     // Ensure both username and password are entered
     if (!username || !password) {
-        document.getElementById('errorMessage').innerText = 'Username and password are required';
+        errorMessage.innerText = 'Username and password are required';
         return;
     }
 
@@ -51,34 +51,33 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
         body: JSON.stringify({
             username: username,
             password: password,
+        }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.token) {
+                document.cookie = `token=${data.token}; path=/`; // Set JWT token in cookies
+                window.location.href = '/'; // Redirect to homepage
+            } else {
+                errorMessage.innerText = data.message || 'Login failed';
+            }
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.token) {
-            document.cookie = `token=${data.token}; path=/`;  // Set JWT token in cookies
-            window.location.href = '/';  // Redirect to homepage
-        } else {
-            document.getElementById('errorMessage').innerText = data.message || 'Login failed';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('errorMessage').innerText = 'An error occurred during login.';
-    });
-});
+        .catch(error => {
+            console.error('Error:', error);
+            errorMessage.innerText = 'An error occurred during login.';
+        });
+}
 
-// Handle Signup form submission
-document.getElementById('signupForm').addEventListener('submit', function(event) {
-    event.preventDefault();  // Prevent the default form submission
-
+// Function to handle Signup submission
+function signupUser() {
     const username = document.getElementById('signup-username').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
+    const errorMessage = document.querySelector('#signup .error-message');
 
     // Ensure all fields are filled
     if (!username || !email || !password) {
-        document.getElementById('errorMessage').innerText = 'All fields are required';
+        errorMessage.innerText = 'All fields are required';
         return;
     }
 
@@ -91,20 +90,20 @@ document.getElementById('signupForm').addEventListener('submit', function(event)
             username: username,
             email: email,
             password: password,
+        }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.token) {
+                document.cookie = `token=${data.token}; path=/`; // Set JWT token in cookies
+                window.location.href = '/'; // Redirect to homepage
+            } else {
+                errorMessage.innerText = data.message || 'Signup failed';
+            }
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.token) {
-            document.cookie = `token=${data.token}; path=/`;  // Set JWT token in cookies
-            window.location.href = '/';  // Redirect to homepage after successful signup
-        } else {
-            document.getElementById('errorMessage').innerText = data.message || 'Signup failed';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('errorMessage').innerText = 'An error occurred during signup.';
-    });
-});
+        .catch(error => {
+            console.error('Error:', error);
+            errorMessage.innerText = 'An error occurred during signup.';
+        });
+}
 
