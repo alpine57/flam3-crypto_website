@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title | default("Access") }}</title>
+    <title>{{ title | default("Login/Signup") }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login_signup.css') }}">
 </head>
 <body>
@@ -13,31 +13,30 @@
             <button class="tab-link active" onclick="openForm('login')">Login</button>
             <button class="tab-link" onclick="openForm('signup')">Signup</button>
         </div>
-        <!-- Login Form -->
         <div id="login" class="form-container active">
-            <h3>Login</h3>
-            <div class="error-message" id="login-error-message"></div>
-            <label for="login-username">Username:</label>
-            <input type="text" id="login-username" name="username" required>
-            <label for="login-password">Password:</label>
-            <input type="password" id="login-password" name="password" required>
-            <button type="button" onclick="loginUser()">Login</button>
+            <!-- Login form with Flask route -->
+            <form action="{{ url_for('main.login') }}" method="POST">
+                <label for="login-username">Username:</label>
+                <input type="text" id="login-username" name="username" required>
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" name="password" required>
+                <button type="submit">Login</button>
+            </form>
         </div>
-        <!-- Signup Form -->
         <div id="signup" class="form-container">
-            <h3>Signup</h3>
-            <div class="error-message" id="signup-error-message"></div>
-            <label for="signup-username">Username:</label>
-            <input type="text" id="signup-username" name="username" required>
-            <label for="signup-email">Email:</label>
-            <input type="email" id="signup-email" name="email" required>
-            <label for="signup-password">Password:</label>
-            <input type="password" id="signup-password" name="password" required>
-            <button type="button" onclick="signupUser()">Signup</button>
+            <!-- Signup form without default form submission -->
+            <form id="signup-form">
+                <label for="signup-username">Username:</label>
+                <input type="text" id="signup-username" name="username" required>
+                <label for="signup-email">Email:</label>
+                <input type="email" id="signup-email" name="email" required>
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" name="password" required>
+                <button type="button" onclick="signupUser()">Signup</button>
+            </form>
         </div>
     </div>
     <script src="{{ url_for('static', filename='js/login_signup.js') }}"></script>
-<script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>
 
