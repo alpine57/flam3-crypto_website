@@ -1,4 +1,4 @@
-/* Body styling */
+/* General Body Styling */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -8,79 +8,87 @@ body {
     align-items: center;
     flex-direction: column;
     height: 100vh;
-    background: linear-gradient(to right, red, purple);
+    background: linear-gradient(to right, red, purple); /* Gradient background */
 }
 
-/* Container styling */
+/* Main Container */
 .container {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+    backdrop-filter: blur(10px); /* Glass effect */
     -webkit-backdrop-filter: blur(10px);
     border-radius: 10px;
     padding: 40px;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
     width: 90%;
-    max-width: 400px;
+    max-width: 400px; /* Responsive max width */
     box-sizing: border-box;
 }
 
-/* Heading styling */
+/* Heading Styling */
 h2 {
     text-align: center;
     color: #fff;
     margin-bottom: 20px;
 }
 
-/* Tabs container styling */
+/* Tabs Container */
 .tabs {
     display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
 }
 
+/* Tab Button Default Styling */
 .tabs button {
     flex: 1;
     padding: 10px;
     border: none;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+    color: #fff; /* White text */
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
     border-radius: 5px 5px 0 0;
     text-align: center;
     font-size: 16px;
 }
 
+/* Add spacing between tabs */
 .tabs button:not(:last-child) {
     margin-right: 5px;
 }
 
+/* Hover Effect for Tabs */
 .tabs button:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.4); /* Slightly brighter */
+    color: #fff;
 }
 
+/* Active Tab Styling */
 .tabs button.active {
-    background-color: #4CAF50;
-    color: white;
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text for active tab */
+    font-weight: bold;
 }
 
-/* Form container styling */
+/* Form Container (Hidden by Default) */
 .form-container {
     display: none;
 }
 
+/* Active Form Styling */
 .form-container.active {
     display: block;
 }
 
+/* Form Structure */
 form {
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Adds even spacing between form elements */
+    gap: 15px; /* Adds spacing between form elements */
 }
 
-/* Labels */
+/* Labels Styling */
 label {
     margin-bottom: 5px;
     color: #fff;
@@ -88,33 +96,34 @@ label {
     font-weight: bold;
 }
 
-/* Input fields */
+/* Input Fields */
 input[type="text"],
 input[type="password"],
 input[type="email"] {
     width: 100%;
     padding: 12px;
     margin: 5px 0;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Semi-transparent border */
     border-radius: 5px;
     font-size: 14px;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1); /* Transparent background */
+    color: #fff; /* White text */
     box-sizing: border-box;
 }
 
+/* Focus Styling for Input Fields */
 input[type="text"]:focus,
 input[type="password"]:focus,
 input[type="email"]:focus {
     outline: none;
-    border-color: #4CAF50;
+    border-color: #4CAF50; /* Green border on focus */
 }
 
-/* Submit button */
+/* Submit Button Styling */
 button[type="submit"] {
     padding: 12px;
-    background-color: #4CAF50;
-    color: white;
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text */
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -122,22 +131,24 @@ button[type="submit"] {
     font-size: 16px;
 }
 
+/* Hover Effect for Submit Button */
 button[type="submit"]:hover {
-    background-color: #45a049;
+    background-color: #45a049; /* Darker green */
 }
 
+/* Submit Button Focus */
 button[type="submit"]:focus {
     outline: none;
 }
 
-/* Error message styling */
+/* Error Message Styling */
 .error-message {
     color: red;
     font-size: 13px;
     margin: -10px 0 10px;
 }
 
-/* Responsive Design */
+/* Responsive Design for Smaller Screens */
 @media (max-width: 480px) {
     .container {
         width: 90%;
