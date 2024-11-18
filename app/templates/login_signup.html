@@ -13,6 +13,7 @@
             <button class="tab-link active" onclick="openForm('login')">Login</button>
             <button class="tab-link" onclick="openForm('signup')">Signup</button>
         </div>
+        
         <!-- Login Form -->
         <div id="login" class="form-container active">
             <h3>Login</h3>
@@ -23,6 +24,7 @@
             <input type="password" id="login-password" name="password" required>
             <button type="button" onclick="loginUser()">Login</button>
         </div>
+        
         <!-- Signup Form -->
         <div id="signup" class="form-container">
             <h3>Signup</h3>
@@ -36,7 +38,8 @@
             <button type="button" onclick="signupUser()">Signup</button>
         </div>
     </div>
+
     <script src="{{ url_for('static', filename='js/login_signup.js') }}"></script>
-<script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>
+
