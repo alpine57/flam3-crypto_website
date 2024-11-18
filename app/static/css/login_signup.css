@@ -119,8 +119,8 @@ input[type="email"]:focus {
     border-color: #4CAF50; /* Green border on focus */
 }
 
-/* Submit Button Styling */
-button[type="submit"] {
+/* Login and Signup Button Styling */
+button[type="button"] {
     padding: 12px;
     background-color: #4CAF50; /* Green background */
     color: white; /* White text */
@@ -129,15 +129,16 @@ button[type="submit"] {
     cursor: pointer;
     transition: background-color 0.3s ease;
     font-size: 16px;
+    font-weight: bold; /* Make buttons more prominent */
 }
 
-/* Hover Effect for Submit Button */
-button[type="submit"]:hover {
+/* Hover Effect for Login and Signup Buttons */
+button[type="button"]:hover {
     background-color: #45a049; /* Darker green */
 }
 
-/* Submit Button Focus */
-button[type="submit"]:focus {
+/* Focus Styling for Buttons */
+button[type="button"]:focus {
     outline: none;
 }
 
@@ -166,7 +167,7 @@ button[type="submit"]:focus {
         font-size: 12px;
     }
 
-    button[type="submit"] {
+    button[type="button"] {
         font-size: 14px;
         padding: 10px;
     }
