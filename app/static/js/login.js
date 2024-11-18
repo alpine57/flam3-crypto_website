@@ -12,13 +12,13 @@ function openForm(formName) {
     if (formName === 'login') {
         loginForm.classList.add('active');
         signupForm.classList.remove('active');
-    } else {
+    } else if (formName === 'signup') {
         signupForm.classList.add('active');
         loginForm.classList.remove('active');
     }
     
     tabLinks.forEach(link => link.classList.remove('active'));
-    const activeTab = document.querySelector(button[onclick="openForm('${formName}')"]);
+    const activeTab = document.querySelector(`.tab-link[onclick="openForm('${formName}')"]`);
     if (activeTab) {
         activeTab.classList.add('active');
     }
@@ -26,8 +26,8 @@ function openForm(formName) {
 
 // Login function
 function loginUser() {
-    const username = document.getElementById('login-username')?.value;
-    const password = document.getElementById('login-password')?.value;
+    const username = document.getElementById('login-username')?.value.trim();
+    const password = document.getElementById('login-password')?.value.trim();
     const errorMessage = document.getElementById('login-error-message');
     
     if (!errorMessage) {
@@ -43,7 +43,7 @@ function loginUser() {
     }
 
     // Show some loading state
-    const loginButton = document.querySelector('button[type="submit"]');
+    const loginButton = document.querySelector('#login button[type="button"]');
     if (loginButton) {
         loginButton.disabled = true;
     }
@@ -57,13 +57,13 @@ function loginUser() {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(HTTP error! Status: ${response.status});
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
         if (data.token) {
-            document.cookie = token=${data.token}; path=/;
+            document.cookie = `token=${data.token}; path=/`;
             window.location.href = '/';
         } else {
             errorMessage.innerText = data.message || 'Login failed.';
@@ -82,9 +82,9 @@ function loginUser() {
 
 // Signup function
 function signupUser() {
-    const username = document.getElementById('signup-username')?.value;
-    const email = document.getElementById('signup-email')?.value;
-    const password = document.getElementById('signup-password')?.value;
+    const username = document.getElementById('signup-username')?.value.trim();
+    const email = document.getElementById('signup-email')?.value.trim();
+    const password = document.getElementById('signup-password')?.value.trim();
     const errorMessage = document.getElementById('signup-error-message');
     
     if (!errorMessage) {
@@ -105,7 +105,7 @@ function signupUser() {
     }
 
     // Show some loading state
-    const signupButton = document.querySelector('button[type="submit"]');
+    const signupButton = document.querySelector('#signup button[type="button"]');
     if (signupButton) {
         signupButton.disabled = true;
     }
@@ -119,13 +119,13 @@ function signupUser() {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(HTTP error! Status: ${response.status});
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
         if (data.token) {
-            document.cookie = token=${data.token}; path=/;
+            document.cookie = `token=${data.token}; path=/`;
             window.location.href = '/';
         } else {
             errorMessage.innerText = data.message || 'Signup failed.';
@@ -140,3 +140,5 @@ function signupUser() {
             signupButton.disabled = false;
         }
     });
+}
+
