@@ -104,9 +104,10 @@ button.login-button:hover {
     background-color: #45a049; /* Darker green on hover */
 }
 
-/* Signup button style - This is the crucial fix */
+/* FIXED: Signup button style with !important to override conflicts */
 button.signup-button {
     background-color: #007BFF !important; /* Blue color for Signup */
+    color: white; /* Ensure text color is white */
 }
 
 button.signup-button:hover {
