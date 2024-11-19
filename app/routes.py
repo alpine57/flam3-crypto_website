@@ -56,6 +56,7 @@ def login():
         username = data.get('username')
         password = data.get('password')
 
+        # Validate fields
         if not username or not password:
             return jsonify({'message': 'Username and password are required'}), 400
 
@@ -75,11 +76,10 @@ def login():
             'exp': datetime.utcnow() + timedelta(hours=1)
         }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-        # Render the index.html template and set token in cookies
-        response = render_template('index.html', username=user[1])
+        # Return JSON response with redirect URL and token
         response = jsonify({'redirect': 'index'})
         response.set_cookie('token', token)
-        return response  # After successful login, it will render index.html
+        return response  # After successful login, it will return a redirect instruction
 
     # Render login page for GET request
     return render_template('login.html')
@@ -99,9 +99,11 @@ def register():
     email = data.get('email')
     password = data.get('password')
 
+    # Validate fields
     if not username or not email or not password:
         return jsonify({'message': 'Username, email, and password are required'}), 400
 
+    # Check if username already exists
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM users WHERE username = %s", (username,))
@@ -112,6 +114,7 @@ def register():
         conn.close()
         return jsonify({'message': 'Username already exists!'}), 400
 
+    # Hash password and store user in database
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
                 (username, email, hashed_password))
@@ -119,17 +122,16 @@ def register():
     cur.close()
     conn.close()
 
-    # Generate JWT token
+    # Generate JWT token for new user
     token = jwt.encode({
         'username': username,
         'exp': datetime.utcnow() + timedelta(hours=1)
     }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-    # Render the index.html template and set token in cookies
-    response = render_template('index.html', username=username)
+    # Return JSON response with redirect URL and token
     response = jsonify({"redirect": "index"})
     response.set_cookie('token', token)
-    return response  # After successful registration, it will render index.html
+    return response  # After successful registration, it will return a redirect instruction
 
 @bp.route('/protected', methods=['GET'])
 @token_required
