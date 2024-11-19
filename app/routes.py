@@ -75,10 +75,11 @@ def login():
             'exp': datetime.utcnow() + timedelta(hours=1)
         }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-        # Redirect to homepage with token set in cookies
-        response = redirect(url_for('main.index'))
+        # Render the index.html template and set token in cookies
+        response = render_template('index.html', username=user[1])
+        response = jsonify({'redirect': 'index'})
         response.set_cookie('token', token)
-        return response
+        return response  # After successful login, it will render index.html
 
     # Render login page for GET request
     return render_template('login.html')
@@ -118,16 +119,17 @@ def register():
     cur.close()
     conn.close()
 
-    # Automatically log in the user by generating a token
+    # Generate JWT token
     token = jwt.encode({
         'username': username,
         'exp': datetime.utcnow() + timedelta(hours=1)
     }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-    # Set the token as a cookie and redirect to homepage
-    response = redirect(url_for('main.index'))
+    # Render the index.html template and set token in cookies
+    response = render_template('index.html', username=username)
+    response = jsonify({"redirect": "index"})
     response.set_cookie('token', token)
-    return response
+    return response  # After successful registration, it will render index.html
 
 @bp.route('/protected', methods=['GET'])
 @token_required
