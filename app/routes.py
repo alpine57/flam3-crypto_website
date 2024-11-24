@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, current_app, redirect, url_for
+from flask import Blueprint, jsonify, request, render_template, current_app, redirect, url_for, make_response
 import bcrypt
 import jwt
 from functools import wraps
@@ -40,7 +40,7 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     return decorated
 
-@bp.route('/')
+@bp.route('/index')
 @token_required
 def index(current_user):
     return render_template('index.html', username=current_user)
@@ -50,7 +50,7 @@ def login():
     if request.method == 'POST':
         # Ensure request contains JSON data
         if not request.is_json:
-            return jsonify({'message': 'Content-Type must be application/json and contain valid JSON'}), 415
+            return jsonify({'status': 'error', 'message': 'Content-Type must be application/json and contain valid JSON'}), 415
 
         data = request.get_json()
         username = data.get('username')
@@ -58,7 +58,7 @@ def login():
 
         # Validate fields
         if not username or not password:
-            return jsonify({'message': 'Username and password are required'}), 400
+            return jsonify({'status': 'error', 'message': 'Username and password are required'}), 400
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -68,7 +68,7 @@ def login():
         conn.close()
 
         if not user or not bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
-            return jsonify({'message': 'Invalid credentials!'}), 401
+            return jsonify({'status': 'error', 'message': 'Invalid credentials!'}), 401
 
         # Generate JWT token
         token = jwt.encode({
@@ -76,10 +76,10 @@ def login():
             'exp': datetime.utcnow() + timedelta(hours=1)
         }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-        # Return JSON response with redirect URL and token
-        response = jsonify({'redirect': 'index'})
-        response.set_cookie('token', token)
-        return response  # After successful login, it will return a redirect instruction
+        # Return JSON response with redirect URL
+        response = jsonify({'status': 'success', 'redirect': url_for('main.index')})
+        response.set_cookie('token', token, httponly=True, secure=True, samesite='Lax')
+        return response
 
     # Render login page for GET request
     return render_template('login.html')
@@ -92,7 +92,7 @@ def login_page():
 def register():
     # Ensure request contains JSON data
     if not request.is_json:
-        return jsonify({'message': 'Content-Type must be application/json and contain valid JSON'}), 415
+        return jsonify({'status': 'error', 'message': 'Content-Type must be application/json and contain valid JSON'}), 415
 
     data = request.get_json()
     username = data.get('username')
@@ -101,23 +101,23 @@ def register():
 
     # Validate fields
     if not username or not email or not password:
-        return jsonify({'message': 'Username, email, and password are required'}), 400
+        return jsonify({'status': 'error', 'message': 'Username, email, and password are required'}), 400
 
-    # Check if username already exists
     conn = get_db_connection()
     cur = conn.cursor()
+
+    # Check if username already exists
     cur.execute("SELECT * FROM users WHERE username = %s", (username,))
     user = cur.fetchone()
 
     if user:
         cur.close()
         conn.close()
-        return jsonify({'message': 'Username already exists!'}), 400
+        return jsonify({'status': 'error', 'message': 'Username already exists!'}), 400
 
     # Hash password and store user in database
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-    cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
-                (username, email, hashed_password))
+    cur.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (username, email, hashed_password))
     conn.commit()
     cur.close()
     conn.close()
@@ -128,13 +128,8 @@ def register():
         'exp': datetime.utcnow() + timedelta(hours=1)
     }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-    # Return JSON response with redirect URL and token
-    response = jsonify({"redirect": "index"})
-    response.set_cookie('token', token)
-    return response  # After successful registration, it will return a redirect instruction
-
-@bp.route('/protected', methods=['GET'])
-@token_required
-def protected_route(current_user):
-    return jsonify({'message': f'Hello, {current_user}!', 'logged_in_as': current_user})
+    # Return JSON response with redirect URL
+    response = jsonify({"status": "success", "redirect": url_for('main.index')})
+    response.set_cookie('token', token, httponly=True, secure=True, samesite='Lax')
+    return response
 
