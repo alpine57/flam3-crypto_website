@@ -45,6 +45,11 @@ def token_required(f):
 def index(current_user):
     return render_template('index.html', username=current_user)
 
+@bp.route('/')
+def home():
+    # Redirect to login_page or render an appropriate template
+    return redirect(url_for('main.login_page'))
+
 @bp.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
