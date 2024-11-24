@@ -1,5 +1,6 @@
 from flask import Flask
-from .routes import bp as main_bp  # Adjust if needed based on your folder structure
+from app.routes import bp as main_bp
+
 
 def create_app():
     app = Flask(__name__)
