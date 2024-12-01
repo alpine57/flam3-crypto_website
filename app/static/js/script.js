@@ -135,3 +135,40 @@ document.getElementById('spot-bot-status').addEventListener('change', async func
     }
 });
 
+// Function to handle bot status change
+async function handleBotStatusChange(botType, status) {
+    try {
+        const response = await fetch(`/api/bot/${botType}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status }),
+        });
+
+        const result = await response.json();
+        console.log(`${botType} Status Updated:`, result);
+
+        if (result.success) {
+            alert(`${botType.replace('_', ' ')} is now ${status ? 'ON' : 'OFF'}`);
+        } else {
+            alert(`Failed to update ${botType.replace('_', ' ')} status.`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert(`An error occurred while updating the ${botType.replace('_', ' ')} status.`);
+    }
+}
+
+// Event listener for Spot Bot status change
+document.getElementById('spot-bot-status').addEventListener('change', function () {
+    const botStatus = this.checked;
+    handleBotStatusChange('spot', botStatus); // Call reusable function
+});
+
+// Event listener for Futures Bot status change
+document.getElementById('futures-bot-status').addEventListener('change', function () {
+    const botStatus = this.checked;
+    handleBotStatusChange('futures', botStatus); // Call reusable function
+});
+
