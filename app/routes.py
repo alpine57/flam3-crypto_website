@@ -85,7 +85,7 @@ def login():
         response.set_cookie('token', token, httponly=True, secure=True, samesite='Lax')
         return response
 
-    return render_template('login.html')
+    return render_template('login_signup.html')
 
 # Register route
 @routes.route('/register', methods=['POST'])
