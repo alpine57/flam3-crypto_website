@@ -28,15 +28,15 @@ def token_required(f):
         token = request.cookies.get('token')  # Retrieve token from cookies
 
         if not token:
-            return redirect(url_for('routes.login_page'))  # Redirect if token is missing
+            return redirect(url_for('routes.login'))  # Redirect if token is missing
 
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
             current_user = data['username']
         except jwt.ExpiredSignatureError:
-            return redirect(url_for('routes.login_page'))  # Redirect if token is expired
+            return redirect(url_for('routes.login'))  # Redirect if token is expired
         except jwt.InvalidTokenError:
-            return redirect(url_for('routes.login_page'))  # Redirect if token is invalid
+            return redirect(url_for('routes.login'))  # Redirect if token is invalid
 
         return f(current_user, *args, **kwargs)
     return decorated
@@ -50,7 +50,7 @@ def index(current_user):
 # Home route
 @routes.route('/')
 def home():
-    return redirect(url_for('routes.login_page'))
+    return redirect(url_for('routes.login'))  # Corrected to use the 'login' route
 
 # Login route
 @routes.route('/login', methods=['POST', 'GET'])
@@ -73,7 +73,7 @@ def login():
         cur.close()
         conn.close()
 
-        if not user or not bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
+        if not user or not bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):  # Assuming password is in the 4th column
             return jsonify({'status': 'error', 'message': 'Invalid credentials!'}), 401
 
         token = jwt.encode({
