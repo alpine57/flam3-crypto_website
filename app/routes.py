@@ -143,7 +143,6 @@ def register():
 def toggle_spot_bot(current_user):
     """Toggles the Spot bot and saves its configuration in the database."""
     data = request.json
-    bot_status = data.get("status")
     bot_type = "spot"
     api_key = data.get("api_key")
     api_secret = data.get("api_secret")
@@ -155,69 +154,51 @@ def toggle_spot_bot(current_user):
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # Check if a bot configuration already exists for this user and bot type
+    # Check if a bot configuration exists for this user and bot type
     cur.execute("""
         SELECT id FROM bot_configurations 
         WHERE user_id = (SELECT id FROM users WHERE username = %s) AND bot_type = %s AND exchange = %s
     """, (current_user, bot_type, exchange))
     bot_config = cur.fetchone()
 
-    if bot_status:  # Start the bot
-        if bot_config:
-            # Update existing bot configuration
-            cur.execute("""
-                UPDATE bot_configurations
-                SET status = TRUE, api_key = %s, api_secret = %s, trade_amount = %s, 
-                    trade_pair = %s, time_frame = %s, updated_at = NOW()
-                WHERE id = %s
-            """, (api_key, api_secret, trade_amount, trade_pair, time_frame, bot_config[0]))
-        else:
-            # Insert a new bot configuration
-            cur.execute("""
-                INSERT INTO bot_configurations 
-                (user_id, bot_type, exchange, status, api_key, api_secret, trade_amount, trade_pair, time_frame)
-                VALUES (
-                    (SELECT id FROM users WHERE username = %s), %s, %s, TRUE, %s, %s, %s, %s, %s
-                )
-            """, (current_user, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame))
+    if bot_config:
+        # Update existing bot configuration
+        cur.execute("""
+            UPDATE bot_configurations
+            SET api_key = %s, api_secret = %s, trade_amount = %s, 
+                trade_pair = %s, time_frame = %s, updated_at = NOW()
+            WHERE id = %s
+        """, (api_key, api_secret, trade_amount, trade_pair, time_frame, bot_config[0]))
+    else:
+        # Insert a new bot configuration
+        cur.execute("""
+            INSERT INTO bot_configurations 
+            (user_id, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame)
+            VALUES (
+                (SELECT id FROM users WHERE username = %s), %s, %s, %s, %s, %s, %s, %s
+            )
+        """, (current_user, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame))
 
-        # Start the bot for the specified exchange
-        if exchange == "binance":
-            active_bots["binance_spot"] = start_binance_spot_bot(api_key, api_secret, trade_amount, trade_pair, time_frame)
-        elif exchange == "bybit":
-            active_bots["bybit_spot"] = start_bybit_spot_bot(api_key, api_secret, trade_amount, trade_pair, time_frame)
+    conn.commit()
 
-        conn.commit()
-        return jsonify({"success": True, "message": f"{exchange.capitalize()} Spot bot started!"})
+    # Start or restart the bot for the specified exchange
+    if exchange == "binance":
+        if "binance_spot" in active_bots:
+            stop_binance_spot_bot(active_bots["binance_spot"])
+            del active_bots["binance_spot"]
+        active_bots["binance_spot"] = start_binance_spot_bot(api_key, api_secret, trade_amount, trade_pair, time_frame)
+    elif exchange == "bybit":
+        if "bybit_spot" in active_bots:
+            stop_bybit_spot_bot(active_bots["bybit_spot"])
+            del active_bots["bybit_spot"]
+        active_bots["bybit_spot"] = start_bybit_spot_bot(api_key, api_secret, trade_amount, trade_pair, time_frame)
 
-    else:  # Stop the bot
-        if bot_config:
-            # Update the status in the database
-            cur.execute("""
-                UPDATE bot_configurations
-                SET status = FALSE, updated_at = NOW()
-                WHERE id = %s
-            """, (bot_config[0],))
-
-            # Stop the bot for the specified exchange
-            if exchange == "binance" and "binance_spot" in active_bots:
-                stop_binance_spot_bot(active_bots["binance_spot"])
-                del active_bots["binance_spot"]
-            elif exchange == "bybit" and "bybit_spot" in active_bots:
-                stop_bybit_spot_bot(active_bots["bybit_spot"])
-                del active_bots["bybit_spot"]
-
-            conn.commit()
-            return jsonify({"success": True, "message": f"{exchange.capitalize()} Spot bot stopped!"})
-
-    return jsonify({"success": False, "message": "Failed to toggle Spot bot status."})
-
+    return jsonify({"success": True, "message": f"{exchange.capitalize()} Spot bot restarted successfully!"})
 @routes.route('/api/bot/futures/toggle', methods=['POST'])
 @token_required
 def toggle_futures_bot(current_user):
     """Toggles the Futures bot and saves its configuration in the database."""
     data = request.json
-    bot_status = data.get("status")
     bot_type = "futures"
     api_key = data.get("api_key")
     api_secret = data.get("api_secret")
@@ -230,62 +211,44 @@ def toggle_futures_bot(current_user):
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # Check if a bot configuration already exists for this user and bot type
+    # Check if a bot configuration exists for this user and bot type
     cur.execute("""
         SELECT id FROM bot_configurations 
         WHERE user_id = (SELECT id FROM users WHERE username = %s) AND bot_type = %s AND exchange = %s
     """, (current_user, bot_type, exchange))
     bot_config = cur.fetchone()
 
-    if bot_status:  # Start the bot
-        if bot_config:
-            # Update existing bot configuration
-            cur.execute("""
-                UPDATE bot_configurations
-                SET status = TRUE, api_key = %s, api_secret = %s, trade_amount = %s, 
-                    trade_pair = %s, time_frame = %s, leverage = %s, updated_at = NOW()
-                WHERE id = %s
-            """, (api_key, api_secret, trade_amount, trade_pair, time_frame, leverage, bot_config[0]))
-        else:
-            # Insert a new bot configuration
-            cur.execute("""
-                INSERT INTO bot_configurations 
-                (user_id, bot_type, exchange, status, api_key, api_secret, trade_amount, trade_pair, time_frame, leverage)
-                VALUES (
-                    (SELECT id FROM users WHERE username = %s), %s, %s, TRUE, %s, %s, %s, %s, %s, %s
-                )
-            """, (current_user, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame, leverage))
+    if bot_config:
+        # Update existing bot configuration
+        cur.execute("""
+            UPDATE bot_configurations
+            SET api_key = %s, api_secret = %s, trade_amount = %s, 
+                trade_pair = %s, time_frame = %s, leverage = %s, updated_at = NOW()
+            WHERE id = %s
+        """, (api_key, api_secret, trade_amount, trade_pair, time_frame, leverage, bot_config[0]))
+    else:
+        # Insert a new bot configuration
+        cur.execute("""
+            INSERT INTO bot_configurations 
+            (user_id, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame, leverage)
+            VALUES (
+                (SELECT id FROM users WHERE username = %s), %s, %s, %s, %s, %s, %s, %s, %s
+            )
+        """, (current_user, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame, leverage))
 
-        # Start the bot for the specified exchange
-        if exchange == "binance":
-            active_bots["binance_futures"] = start_binance_futures_bot(api_key, api_secret, trade_amount, trade_pair, time_frame, leverage)
-        elif exchange == "bybit":
-            active_bots["bybit_futures"] = start_bybit_futures_bot(api_key, api_secret, trade_amount, trade_pair, time_frame, leverage)
+    conn.commit()
 
-        conn.commit()
-        return jsonify({"success": True, "message": f"{exchange.capitalize()} Futures bot started!"})
+    # Start or restart the bot for the specified exchange
+    if exchange == "binance":
+        if "binance_futures" in active_bots:
+            stop_binance_futures_bot(active_bots["binance_futures"])
+            del active_bots["binance_futures"]
+        active_bots["binance_futures"] = start_binance_futures_bot(api_key, api_secret, trade_amount, trade_pair, time_frame, leverage)
+    elif exchange == "bybit":
+        if "bybit_futures" in active_bots:
+            stop_bybit_futures_bot(active_bots["bybit_futures"])
+            del active_bots["bybit_futures"]
+        active_bots["bybit_futures"] = start_bybit_futures_bot(api_key, api_secret, trade_amount, trade_pair, time_frame, leverage)
 
-    else:  # Stop the bot
-        if bot_config:
-            # Update the status in the database
-            cur.execute("""
-                UPDATE bot_configurations
-                SET status = FALSE, updated_at = NOW()
-                WHERE id = %s
-            """, (bot_config[0],))
-
-            # Stop the bot for the specified exchange
-            if exchange == "binance" and "binance_futures" in active_bots:
-                stop_binance_futures_bot(active_bots["binance_futures"])
-                del active_bots["binance_futures"]
-            elif exchange == "bybit" and "bybit_futures" in active_bots:
-                stop_bybit_futures_bot(active_bots["bybit_futures"])
-                del active_bots["bybit_futures"]
-
-            conn.commit()
-            return jsonify({"success": True, "message": f"{exchange.capitalize()} Futures bot stopped!"})
-
-    return jsonify({"success": False, "message": "Failed to toggle Futures bot status."})
-
-
+    return jsonify({"success": True, "message": f"{exchange.capitalize()} Futures bot restarted successfully!"})
 
