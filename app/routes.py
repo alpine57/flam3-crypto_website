@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 import psycopg2
 import os
 
-bp = Blueprint('main', __name__)
+# Define the blueprint object
+routes = Blueprint('routes', __name__)
 
 # Ensure DATABASE_URL is correctly loaded from environment variables
 DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://flame_crypto_user:96yoBV9vkxXQLJM8MjWOSNYHwGqkQYXw@dpg-csl7uejv2p9s73b4bjbg-a.oregon-postgres.render.com/flame_crypto')
