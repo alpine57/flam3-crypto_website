@@ -1,5 +1,4 @@
-<script>
-        function showSection(sectionId) {
+function showSection(sectionId) {
             const sections = document.querySelectorAll('.content');
             sections.forEach(section => {
                 section.style.display = section.id === sectionId ? 'flex' : 'none';
