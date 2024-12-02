@@ -5,6 +5,9 @@ from functools import wraps
 from datetime import datetime, timedelta
 import psycopg2
 import os
+from flask import Flask
+
+app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # Define the blueprint as 'routes'
 routes = Blueprint('routes', __name__)
