@@ -13,7 +13,7 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 routes = Blueprint('routes', __name__)
 
 # Ensure DATABASE_URL is correctly loaded from environment variables
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://flame_crypto_user:96yoBV9vkxXQLJM8MjWOSNYHwGqkQYXw@dpg-csl7uejv2p9s73b4bjbg-a.oregon-postgres.render.com/flame_crypto')
+DATABASE_URL = os.getenv('DATABASE_URL',"postgresql://default:zyqGFZc0HWt2@ep-still-band-a4xu3rci.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require" )
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set. Ensure it is set in the environment variables.")
