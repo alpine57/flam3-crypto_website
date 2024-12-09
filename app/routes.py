@@ -137,6 +137,12 @@ def register():
 def configure_futures_bot(current_user):
     """Handles Futures bot configuration and saves it to the database."""
     data = request.json
+ # Extract bot_name from the request payload
+    bot_name = data.get("botName")  # Corrected extraction of bot_name
+
+    if not bot_name:  # Validate bot_name is provided
+        return jsonify({"success": False, "message": "Bot name is required!"}), 400
+
     bot_type = "futures"
     exchange = data.get("exchange")
     api_key = data.get("apiKey")
@@ -146,8 +152,6 @@ def configure_futures_bot(current_user):
     time_frame = data.get("timeFrame")
     leverage = data.get("leverage")
 
-    if not bot_name:  # Validate bot name
-        return jsonify({"success": False, "message": "Bot name is required!"}), 400
 
     conn = get_db_connection()
     cur = conn.cursor()
