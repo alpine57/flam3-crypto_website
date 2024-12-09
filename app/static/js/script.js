@@ -43,9 +43,13 @@ function closeFuturesBotConfigForm() {
     document.getElementById('futures-bot-config-container').style.display = 'none';
 }
 
-document.getElementById('futures-bot-config-form').addEventListener('submit', async function(event) {
+document.getElementById('futures-bot-config-form').addEventListener('submit', async function (event) {
     event.preventDefault();
 
+    // Get the bot name from the header
+    const botName = document.getElementById('futures-bot-config-header').innerText.replace(' Configuration', '');
+
+    // Retrieve form values
     const exchange = document.getElementById('futures-exchange').value;
     const apiKey = document.getElementById('futures-api-key').value;
     const apiSecret = document.getElementById('futures-api-secret').value;
@@ -54,14 +58,16 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
     const leverage = document.getElementById('leverage').value;
     const timeFrame = document.getElementById('futures-time-frame').value;
 
+    // Add bot name to the configuration
     const futuresBotConfig = {
+        botName,
         exchange,
         apiKey,
         apiSecret,
         tradeAmount,
         tradePair,
         leverage,
-        timeFrame
+        timeFrame,
     };
 
     console.log('Futures Bot Configuration:', futuresBotConfig);
@@ -71,41 +77,50 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
         const response = await fetch('/api/bot/futures/config', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(futuresBotConfig)
+            body: JSON.stringify(futuresBotConfig),
         });
 
         const result = await response.json();
         console.log('Server Response:', result);
 
         if (result.success) {
-            alert('Futures bot configuration updated and restarted successfully!');
+            alert(`${botName} configuration updated and restarted successfully!`);
         } else {
-            alert('Failed to update the futures bot configuration.');
+            alert(`Failed to update the configuration for ${botName}.`);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('An error occurred while updating the futures bot configuration.');
+        alert(`An error occurred while updating the configuration for ${botName}.`);
     }
 
     closeFuturesBotConfigForm();
 });
-document.getElementById('spot-bot-status').addEventListener('change', async function() {
-    const exchange = document.getElementById('spot-exchange').value;
+
+document.getElementById('spot-bot-config-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    // Get the bot name from the header
+    const botName = document.getElementById('spot-bot-config-header').innerText.replace(' Configuration', '');
+
+    // Retrieve form values
+    const exchange = document.getElementById('futures-exchange').value;
     const apiKey = document.getElementById('spot-api-key').value;
     const apiSecret = document.getElementById('spot-api-secret').value;
     const tradeAmount = document.getElementById('spot-trade-amount').value;
     const tradePair = document.getElementById('spot-trade-pair').value;
     const timeFrame = document.getElementById('spot-time-frame').value;
 
+    // Add bot name to the configuration
     const spotBotConfig = {
+        botName,
         exchange,
         apiKey,
         apiSecret,
         tradeAmount,
         tradePair,
-        timeFrame
+        timeFrame,
     };
 
     console.log('Spot Bot Configuration:', spotBotConfig);
@@ -115,25 +130,28 @@ document.getElementById('spot-bot-status').addEventListener('change', async func
         const response = await fetch('/api/bot/spot/config', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(spotBotConfig)
+            body: JSON.stringify(spotBotConfig),
         });
 
         const result = await response.json();
-        console.log('Spot Bot Status Updated:', result);
+        console.log('Server Response:', result);
 
         if (result.success) {
-            alert('Spot bot configuration updated and restarted successfully!');
+            alert(`${botName} configuration updated and restarted successfully!`);
         } else {
-            alert('Failed to update the spot bot configuration.');
+            alert(`Failed to update the configuration for ${botName}.`);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('An error occurred while updating the spot bot configuration.');
+        alert(`An error occurred while updating the configuration for ${botName}.`);
     }
+
+    closeSpotBotConfigForm();
 });
 
+           
 // Function to handle bot status change
 async function handleBotStatusChange(botType, status) {
     try {
