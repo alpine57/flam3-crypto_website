@@ -146,7 +146,7 @@ def configure_futures_bot(current_user):
     time_frame = data.get("timeFrame")
     leverage = data.get("leverage")
 
-if not bot_name:  # Validate bot name
+    if not bot_name:  # Validate bot name
         return jsonify({"success": False, "message": "Bot name is required!"}), 400
 
     conn = get_db_connection()
