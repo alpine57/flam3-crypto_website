@@ -68,7 +68,7 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
 
     // Send the configuration to the backend
     try {
-        const response = await fetch('/api/bot/futures/toggle', {
+        const response = await fetch('/api/bot/futures/config', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -112,7 +112,7 @@ document.getElementById('spot-bot-status').addEventListener('change', async func
 
     // Send the configuration to the backend
     try {
-        const response = await fetch('/api/bot/spot/toggle', {
+        const response = await fetch('/api/bot/spot/config', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
