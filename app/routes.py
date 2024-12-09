@@ -151,7 +151,7 @@ def configure_futures_bot(current_user):
 
     # Check if a Futures bot configuration exists for the user
     cur.execute("""
-        SELECT id FROM bot_configurations
+        SELECT id FROM futures_bot_configurations
         WHERE user_id = (SELECT id FROM users WHERE username = %s) AND bot_type = %s AND exchange = %s
     """, (current_user, bot_type, exchange))
     bot_config = cur.fetchone()
@@ -159,7 +159,7 @@ def configure_futures_bot(current_user):
     if bot_config:
         # Update existing Futures bot configuration
         cur.execute("""
-            UPDATE bot_configurations
+            UPDATE futures_bot_configurations
             SET api_key = %s, api_secret = %s, trade_amount = %s, trade_pair = %s, 
                 time_frame = %s, leverage = %s, updated_at = NOW()
             WHERE id = %s
@@ -167,7 +167,7 @@ def configure_futures_bot(current_user):
     else:
         # Insert a new Futures bot configuration
         cur.execute("""
-            INSERT INTO bot_configurations 
+            INSERT INTO futures_bot_configurations 
             (user_id, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame, leverage)
             VALUES (
                 (SELECT id FROM users WHERE username = %s), %s, %s, %s, %s, %s, %s, %s, %s
@@ -195,7 +195,7 @@ def configure_spot_bot(current_user):
 
     # Check if a Spot bot configuration exists for the user
     cur.execute("""
-        SELECT id FROM bot_configurations
+        SELECT id FROM spot_bot_configurations
         WHERE user_id = (SELECT id FROM users WHERE username = %s) AND bot_type = %s AND exchange = %s
     """, (current_user, bot_type, exchange))
     bot_config = cur.fetchone()
@@ -203,7 +203,7 @@ def configure_spot_bot(current_user):
     if bot_config:
         # Update existing Spot bot configuration
         cur.execute("""
-            UPDATE bot_configurations
+            UPDATE spot_bot_configurations
             SET api_key = %s, api_secret = %s, trade_amount = %s, trade_pair = %s, 
                 time_frame = %s, updated_at = NOW()
             WHERE id = %s
@@ -211,7 +211,7 @@ def configure_spot_bot(current_user):
     else:
         # Insert a new Spot bot configuration
         cur.execute("""
-            INSERT INTO bot_configurations 
+            INSERT INTO spot_bot_configurations 
             (user_id, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame)
             VALUES (
                 (SELECT id FROM users WHERE username = %s), %s, %s, %s, %s, %s, %s, %s
