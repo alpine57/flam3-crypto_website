@@ -177,3 +177,49 @@ def configure_futures_bot(current_user):
     conn.commit()
     return jsonify({"success": True, "message": "Futures bot configuration saved successfully!"})
 
+@routes.route('/api/bot/spot/config', methods=['POST'])
+@token_required
+def configure_spot_bot(current_user):
+    """Handles Spot bot configuration and saves it to the database."""
+    data = request.json
+    bot_name = data.get("botName")  # Extract botName from the request payload
+    bot_type = "spot"
+    exchange = data.get("exchange")
+    api_key = data.get("apiKey")
+    api_secret = data.get("apiSecret")
+    trade_amount = data.get("tradeAmount")
+    trade_pair = data.get("tradePair")
+    time_frame = data.get("timeFrame")
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Check if a Spot bot configuration exists for the user
+    cur.execute("""
+        SELECT id FROM spot_bot_configurations
+        WHERE user_id = (SELECT id FROM users WHERE username = %s) 
+          AND bot_type = %s AND exchange = %s
+    """, (current_user, bot_type, exchange))
+    bot_config = cur.fetchone()
+
+    if bot_config:
+        # Update existing Spot bot configuration
+        cur.execute("""
+            UPDATE spot_bot_configurations
+            SET bot_name = %s, api_key = %s, api_secret = %s, trade_amount = %s, trade_pair = %s, 
+                time_frame = %s, updated_at = NOW()
+            WHERE id = %s
+        """, (bot_name, api_key, api_secret, trade_amount, trade_pair, time_frame, bot_config[0]))
+    else:
+        # Insert a new Spot bot configuration
+        cur.execute("""
+            INSERT INTO spot_bot_configurations 
+            (user_id, bot_name, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame)
+            VALUES (
+                (SELECT id FROM users WHERE username = %s), %s, %s, %s, %s, %s, %s, %s, %s
+            )
+        """, (current_user, bot_name, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame))
+
+    conn.commit()
+    return jsonify({"success": True, "message": "Spot bot configuration saved successfully!"})
+
