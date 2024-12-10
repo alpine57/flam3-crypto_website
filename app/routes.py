@@ -130,19 +130,12 @@ def register():
     return response
 
 
-
-
 @routes.route('/api/bot/futures/config', methods=['POST'])
 @token_required
 def configure_futures_bot(current_user):
     """Handles Futures bot configuration and saves it to the database."""
     data = request.json
- # Extract bot_name from the request payload
-    bot_name = data.get("botName")  # Corrected extraction of bot_name
-
-    if not bot_name:  # Validate bot_name is provided
-        return jsonify({"success": False, "message": "Bot name is required!"}), 400
-
+    bot_name = data.get("botName")  # Extract botName from the request payload
     bot_type = "futures"
     exchange = data.get("exchange")
     api_key = data.get("apiKey")
@@ -152,14 +145,14 @@ def configure_futures_bot(current_user):
     time_frame = data.get("timeFrame")
     leverage = data.get("leverage")
 
-
     conn = get_db_connection()
     cur = conn.cursor()
 
     # Check if a Futures bot configuration exists for the user
     cur.execute("""
         SELECT id FROM futures_bot_configurations
-        WHERE user_id = (SELECT id FROM users WHERE username = %s) AND bot_type = %s AND exchange = %s
+        WHERE user_id = (SELECT id FROM users WHERE username = %s) 
+          AND bot_type = %s AND exchange = %s
     """, (current_user, bot_type, exchange))
     bot_config = cur.fetchone()
 
@@ -167,64 +160,20 @@ def configure_futures_bot(current_user):
         # Update existing Futures bot configuration
         cur.execute("""
             UPDATE futures_bot_configurations
-            SET api_key = %s, api_secret = %s, trade_amount = %s, trade_pair = %s, 
+            SET bot_name = %s, api_key = %s, api_secret = %s, trade_amount = %s, trade_pair = %s, 
                 time_frame = %s, leverage = %s, updated_at = NOW()
             WHERE id = %s
-        """, (api_key, api_secret, trade_amount, trade_pair, time_frame, leverage, bot_config[0]))
+        """, (bot_name, api_key, api_secret, trade_amount, trade_pair, time_frame, leverage, bot_config[0]))
     else:
         # Insert a new Futures bot configuration
         cur.execute("""
             INSERT INTO futures_bot_configurations 
-            (user_id, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame, leverage)
+            (user_id, bot_name, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame, leverage)
             VALUES (
-                (SELECT id FROM users WHERE username = %s), %s, %s, %s, %s, %s, %s, %s, %s
+                (SELECT id FROM users WHERE username = %s), %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
-        """, (current_user, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame, leverage))
+        """, (current_user, bot_name, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame, leverage))
 
     conn.commit()
     return jsonify({"success": True, "message": "Futures bot configuration saved successfully!"})
-
-@routes.route('/api/bot/spot/config', methods=['POST'])
-@token_required
-def configure_spot_bot(current_user):
-    """Handles Spot bot configuration and saves it to the database."""
-    data = request.json
-    bot_type = "spot"
-    exchange = data.get("exchange")
-    api_key = data.get("apiKey")
-    api_secret = data.get("apiSecret")
-    trade_amount = data.get("tradeAmount")
-    trade_pair = data.get("tradePair")
-    time_frame = data.get("timeFrame")
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-
-    # Check if a Spot bot configuration exists for the user
-    cur.execute("""
-        SELECT id FROM spot_bot_configurations
-        WHERE user_id = (SELECT id FROM users WHERE username = %s) AND bot_type = %s AND exchange = %s
-    """, (current_user, bot_type, exchange))
-    bot_config = cur.fetchone()
-
-    if bot_config:
-        # Update existing Spot bot configuration
-        cur.execute("""
-            UPDATE spot_bot_configurations
-            SET api_key = %s, api_secret = %s, trade_amount = %s, trade_pair = %s, 
-                time_frame = %s, updated_at = NOW()
-            WHERE id = %s
-        """, (api_key, api_secret, trade_amount, trade_pair, time_frame, bot_config[0]))
-    else:
-        # Insert a new Spot bot configuration
-        cur.execute("""
-            INSERT INTO spot_bot_configurations 
-            (user_id, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame)
-            VALUES (
-                (SELECT id FROM users WHERE username = %s), %s, %s, %s, %s, %s, %s, %s
-            )
-        """, (current_user, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame))
-
-    conn.commit()
-    return jsonify({"success": True, "message": "Spot bot configuration saved successfully!"})
 

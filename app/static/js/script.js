@@ -46,16 +46,8 @@ function closeFuturesBotConfigForm() {
 document.getElementById('futures-bot-config-form').addEventListener('submit', async function (event) {
     event.preventDefault();
 
-document.getElementById('futures-bot-config-form').addEventListener('submit', async function (event) {
-    event.preventDefault();
-
     // Get the bot name from the header
-    const botName = document.getElementById('futures-bot-config-header')?.innerText.replace(' Configuration', '').trim();
-
-    if (!botName) {
-        alert("Bot name is missing. Please check the header.");
-        return;
-    }
+    const botName = document.getElementById('futures-bot-config-header').innerText.replace(' Configuration', '');
 
     // Retrieve form values
     const exchange = document.getElementById('futures-exchange').value;
@@ -66,13 +58,7 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
     const leverage = document.getElementById('leverage').value;
     const timeFrame = document.getElementById('futures-time-frame').value;
 
-    // Validate required fields
-    if (!exchange || !apiKey || !apiSecret || !tradeAmount || !tradePair || !leverage || !timeFrame) {
-        alert("Please fill in all required fields.");
-        return;
-    }
-
-    // Prepare configuration object
+    // Add bot name to the configuration
     const futuresBotConfig = {
         botName,
         exchange,
@@ -96,9 +82,6 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
             body: JSON.stringify(futuresBotConfig),
         });
 
-        console.log('Request Payload:', JSON.stringify(futuresBotConfig));
-        console.log('Response Status:', response.status);
-
         const result = await response.json();
         console.log('Server Response:', result);
 
@@ -108,7 +91,7 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
             alert(`Failed to update the configuration for ${botName}.`);
         }
     } catch (error) {
-        console.error('Fetch Error:', error);
+        console.error('Error:', error);
         alert(`An error occurred while updating the configuration for ${botName}.`);
     }
 
@@ -119,28 +102,17 @@ document.getElementById('spot-bot-config-form').addEventListener('submit', async
     event.preventDefault();
 
     // Get the bot name from the header
-    const botName = document.getElementById('spot-bot-config-header')?.innerText.replace(' Configuration', '').trim();
-
-    if (!botName) {
-        alert("Bot name is missing. Please check the header.");
-        return;
-    }
+    const botName = document.getElementById('spot-bot-config-header').innerText.replace(' Configuration', '');
 
     // Retrieve form values
-    const exchange = document.getElementById('spot-exchange').value;
+    const exchange = document.getElementById('futures-exchange').value;
     const apiKey = document.getElementById('spot-api-key').value;
     const apiSecret = document.getElementById('spot-api-secret').value;
     const tradeAmount = document.getElementById('spot-trade-amount').value;
     const tradePair = document.getElementById('spot-trade-pair').value;
     const timeFrame = document.getElementById('spot-time-frame').value;
 
-    // Validate required fields
-    if (!exchange || !apiKey || !apiSecret || !tradeAmount || !tradePair || !timeFrame) {
-        alert("Please fill in all required fields.");
-        return;
-    }
-
-    // Prepare configuration object
+    // Add bot name to the configuration
     const spotBotConfig = {
         botName,
         exchange,
@@ -163,9 +135,6 @@ document.getElementById('spot-bot-config-form').addEventListener('submit', async
             body: JSON.stringify(spotBotConfig),
         });
 
-        console.log('Request Payload:', JSON.stringify(spotBotConfig));
-        console.log('Response Status:', response.status);
-
         const result = await response.json();
         console.log('Server Response:', result);
 
@@ -175,7 +144,7 @@ document.getElementById('spot-bot-config-form').addEventListener('submit', async
             alert(`Failed to update the configuration for ${botName}.`);
         }
     } catch (error) {
-        console.error('Fetch Error:', error);
+        console.error('Error:', error);
         alert(`An error occurred while updating the configuration for ${botName}.`);
     }
 
