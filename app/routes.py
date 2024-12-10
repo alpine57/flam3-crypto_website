@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 import psycopg2
 import os
 from flask import Flask
+from bots.utils.bot_operations import start_bot, stop_bot
+from utils.db import get_db_connection 
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -223,3 +225,81 @@ def configure_spot_bot(current_user):
     conn.commit()
     return jsonify({"success": True, "message": "Spot bot configuration saved successfully!"})
 
+
+@routes.route('/api/bot/start', methods=['POST'])
+def start_bot_route():
+    """
+    Starts a bot of the given type and exchange with the provided configuration.
+    """
+    data = request.json
+    bot_name = data.get("bot_name")  # e.g., 'spot_bot_1'
+    exchange = data.get("exchange")  # e.g., 'bybit'
+
+    # Ensure required parameters are present in the request
+    if not bot_name or not exchange:
+        return jsonify({"success": False, "message": "Missing 'bot_name' or 'exchange' parameter."}), 400
+
+    try:
+        # Optional: Validate bot_name and exchange against the database
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT COUNT(*) FROM spot_bot_configurations WHERE bot_name = %s AND exchange = %s
+        """, (bot_name, exchange))
+        if cur.fetchone()[0] == 0:
+            return jsonify({"success": False, "message": "Invalid bot_name or exchange."}), 400
+        
+        # Start the bot using the bot_operations function
+        instance_id = start_bot(bot_name, exchange)
+
+        # Optional: Log the bot start in the database
+        cur.execute("""
+            INSERT INTO bot_logs (bot_name, exchange, action, timestamp)
+            VALUES (%s, %s, 'start', CURRENT_TIMESTAMP)
+        """, (bot_name, exchange))
+        conn.commit()
+
+        return jsonify({"success": True, "message": f"{bot_name} started on {exchange}!", "instance_id": instance_id})
+    except ValueError as e:
+        return jsonify({"success": False, "message": f"Error: {str(e)}"}), 400
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Unexpected error: {str(e)}"}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@routes.route('/api/bot/stop', methods=['POST'])
+def stop_bot_route():
+    """
+    Stops a bot of the given type and exchange.
+    """
+    data = request.json
+    bot_name = data.get("bot_name")  # e.g., 'spot_bot_1'
+    exchange = data.get("exchange")  # e.g., 'bybit'
+
+    # Ensure required parameters are present in the request
+    if not bot_name or not exchange:
+        return jsonify({"success": False, "message": "Missing 'bot_name' or 'exchange' parameter."}), 400
+
+    try:
+        # Stop the bot using the bot_operations function
+        stop_bot(bot_name, exchange)
+
+        # Optional: Log the bot stop in the database
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO bot_logs (bot_name, exchange, action, timestamp)
+            VALUES (%s, %s, 'stop', CURRENT_TIMESTAMP)
+        """, (bot_name, exchange))
+        conn.commit()
+
+        return jsonify({"success": True, "message": f"{bot_name} stopped on {exchange}!"})
+    except ValueError as e:
+        return jsonify({"success": False, "message": f"Error: {str(e)}"}), 400
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Unexpected error: {str(e)}"}), 500
+    finally:
+        cur.close()
+        conn.close()
