@@ -8,6 +8,7 @@ import os
 from flask import Flask
 from bots.utils.bot_operations import start_bot, stop_bot
 from utils.db import get_db_connection 
+from utils.db import get_db_connection
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
