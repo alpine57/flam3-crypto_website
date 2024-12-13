@@ -1,22 +1,22 @@
-import psycopg2
+ import psycopg2
 import importlib
 import logging
 
 # Database connection setup
 DB_CONFIG = {
-    "dbname": "your_db_name",
-    "user": "your_username",
-    "password": "your_password",
-    "host": "your_host",
-    "port": "your_port"
+    'dbname': 'verceldb',
+    'user': 'default',
+    'password': 'zyqGFZc0HWt2',
+    'host': 'ep-still-band-a4xu3rci.us-east-1.aws.neon.tech',
+    'port': 5432
 }
+
 
 # Dictionary to track active bot instances
 active_bots = {}
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 
 def get_bot_configuration(bot_name, bot_type, exchange):
     """
@@ -50,7 +50,6 @@ def get_bot_configuration(bot_name, bot_type, exchange):
     finally:
         conn.close()
 
-
 def dynamic_import(bot_name):
     """
     Dynamically imports the start and stop functions for the given bot.
@@ -67,7 +66,6 @@ def dynamic_import(bot_name):
         return bot_module.start_bot, bot_module.stop_bot
     except ImportError as e:
         raise ValueError(f"Failed to import bot: {bot_name}. Error: {e}")
-
 
 def start_bot(bot_name, bot_type, exchange):
     """
@@ -101,7 +99,6 @@ def start_bot(bot_name, bot_type, exchange):
     logging.info(f"Bot {bot_name}, type: {bot_type} started on {exchange} with instance ID: {instance_id}")
     return instance_id
 
-
 def stop_bot(bot_name, bot_type, exchange):
     """
     Stops the bot of the given name, type, and exchange.
@@ -126,4 +123,3 @@ def stop_bot(bot_name, bot_type, exchange):
     stop_function(instance_id)
 
     logging.info(f"Bot {bot_name}, type: {bot_type} stopped on {exchange}")
-
