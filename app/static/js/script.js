@@ -151,41 +151,43 @@ document.getElementById('spot-bot-config-form').addEventListener('submit', async
     closeSpotBotConfigForm();
 });
 
-          
+
 // Function to handle bot status change
-async function handleBotStatusChange(botType, status) {
+async function handleBotStatusChange(botId, botType, exchange, status) {
     try {
         const response = await fetch(`/api/bot/${botType}/toggle`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ status }),
+            body: JSON.stringify({ bot_id: botId, exchange, status }),
         });
 
         const result = await response.json();
-        console.log(`${botType} Status Updated:`, result);
+        console.log(`${botId} (${botType}) Status Updated:`, result);
 
         if (result.success) {
-            alert(`${botType.replace('_', ' ')} is now ${status ? 'ON' : 'OFF'}`);
+            alert(`${botId.replace('_', ' ')} on ${exchange} is now ${status ? 'ON' : 'OFF'}`);
         } else {
-            alert(`Failed to update ${botType.replace('_', ' ')} status.`);
+            alert(`Failed to update ${botId.replace('_', ' ')} on ${exchange} status.`);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert(`An error occurred while updating the ${botType.replace('_', ' ')} status.`);
+        alert(`An error occurred while updating the ${botId.replace('_', ' ')} status.`);
     }
 }
 
-// Event listener for Spot Bot status change
-document.getElementById('spot-bot-status').addEventListener('change', function () {
-    const botStatus = this.checked;
-    handleBotStatusChange('spot', botStatus); // Call reusable function
-});
+// Add event listeners dynamically for all bot toggle checkboxes
+document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach((checkbox) => {
+    checkbox.addEventListener('change', function () {
+        const botStatus = this.checked;
+        const form = this.closest('form'); // Get the parent form to extract other data
 
-// Event listener for Futures Bot status change
-document.getElementById('futures-bot-status').addEventListener('change', function () {
-    const botStatus = this.checked;
-    handleBotStatusChange('futures', botStatus); // Call reusable function
+        const botId = form.dataset.botId; // Ensure botId is added to the form in HTML
+        const botType = form.dataset.botType; // Ensure botType is added to the form in HTML
+        const exchange = form.querySelector('select[name="exchange"]').value;
+
+        handleBotStatusChange(botId, botType, exchange, botStatus);
+    });
 });
 
