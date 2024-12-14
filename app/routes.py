@@ -1,4 +1,4 @@
-fom flask import Blueprint, jsonify, request, render_template, current_app, redirect, url_for, make_response
+from flask import Blueprint, jsonify, request, render_template, current_app, redirect, url_for, make_response
 import bcrypt
 import jwt
 from functools import wraps
