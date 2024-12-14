@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, current_app, redirect, url_for, make_response
+fom flask import Blueprint, jsonify, request, render_template, current_app, redirect, url_for, make_response
 import bcrypt
 import jwt
 from functools import wraps
@@ -231,10 +231,17 @@ def toggle_bot():
     Toggle bot status (start or stop) based on the given parameters.
     """
     data = request.get_json()
-    status = data.get('status')  # Boolean: True to start, False to stop
-    bot_id = data.get('bot_id')  # Bot ID
-    bot_name = data.get('bot_name')  # Bot name
-    exchange = data.get('exchange')  # Exchange name
+
+    # Debugging: Log received data
+    print(f"Received data: {data}")
+
+    status = data.get('status')
+    bot_id = data.get('bot_id')
+    bot_name = data.get('bot_name')
+    exchange = data.get('exchange')
+
+    if not all([bot_id, bot_name, exchange]) or status is None:
+        return jsonify({"success": False, "message": "Invalid parameters."}), 400
 
     try:
         if status:
@@ -244,5 +251,6 @@ def toggle_bot():
             stop_bot(bot_id=bot_id, bot_name=bot_name, exchange=exchange)
             return jsonify({"success": True, "message": f"Bot {bot_name} stopped."}), 200
     except Exception as e:
+        print(f"Error toggling bot: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
