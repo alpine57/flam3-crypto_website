@@ -224,36 +224,25 @@ def configure_spot_bot(current_user):
     conn.commit()
     return jsonify({"success": True, "message": "Spot bot configuration saved successfully!"})
 
-@routes.route('/api/bot/<bot_type>/toggle', methods=['POST'])
-def toggle_bot(bot_type):
+
+@routes.route('/api/bot/toggle', methods=['POST'])
+def toggle_bot():
     """
     Toggle bot status (start or stop) based on the given parameters.
     """
     data = request.get_json()
-
-    # Validate input
-    if not data or 'status' not in data or 'bot_name' not in data or 'exchange' not in data:
-        return jsonify({"success": False, "message": "Missing required parameters: status, bot_name, exchange"}), 400
-
     status = data.get('status')  # Boolean: True to start, False to stop
-    bot_name = data.get('bot_name')
-    exchange = data.get('exchange')
-
-    # Validate 'status' value
-    if not isinstance(status, bool):
-        return jsonify({"success": False, "message": "'status' must be a boolean value"}), 400
+    bot_id = data.get('bot_id')  # Bot ID
+    bot_name = data.get('bot_name')  # Bot name
+    exchange = data.get('exchange')  # Exchange name
 
     try:
         if status:
-            # Start the bot
-            logging.info(f"Starting bot: {bot_name} on {exchange} of type {bot_type}")
-            bot_id = start_bot(bot_name=bot_name, bot_type=bot_type, exchange=exchange)
+            bot_id = start_bot(bot_id=bot_id, bot_name=bot_name, exchange=exchange)
             return jsonify({"success": True, "message": f"Bot {bot_name} started.", "bot_id": bot_id}), 200
         else:
-            # Stop the bot
-            logging.info(f"Stopping bot: {bot_name} on {exchange} of type {bot_type}")
-            stop_bot(bot_name=bot_name, bot_type=bot_type, exchange=exchange)
+            stop_bot(bot_id=bot_id, bot_name=bot_name, exchange=exchange)
             return jsonify({"success": True, "message": f"Bot {bot_name} stopped."}), 200
     except Exception as e:
-        logging.error(f"Error during bot operation: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
