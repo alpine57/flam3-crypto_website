@@ -235,13 +235,20 @@ def toggle_bot():
     # Debugging: Log received data
     print(f"Received data: {data}")
 
+    # Validate the input payload
+    required_fields = ['status', 'bot_id', 'bot_name', 'exchange']
+    missing_fields = [field for field in required_fields if field not in data]
+
+    if missing_fields:
+        return jsonify({
+            "success": False,
+            "message": f"Missing fields: {', '.join(missing_fields)}"
+        }), 400
+
     status = data.get('status')
     bot_id = data.get('bot_id')
     bot_name = data.get('bot_name')
     exchange = data.get('exchange')
-
-    if not all([bot_id, bot_name, exchange]) or status is None:
-        return jsonify({"success": False, "message": "Invalid parameters."}), 400
 
     try:
         if status:
