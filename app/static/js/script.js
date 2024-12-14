@@ -153,15 +153,28 @@ document.getElementById('spot-bot-config-form').addEventListener('submit', async
 
 
 
-// Function to handle bot status change
 async function handleBotStatusChange(botId, botName, botType, exchange, status) {
+    console.log("Payload to be sent:", {
+        bot_id: botId,
+        bot_name: botName,
+        bot_type: botType,
+        exchange,
+        status,
+    });
+
     try {
         const response = await fetch(`/api/bot/toggle`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ bot_id: botId, bot_name: botName, bot_type: botType, exchange, status }),
+            body: JSON.stringify({
+                bot_id: botId,
+                bot_name: botName,
+                bot_type: botType, // Ensure this matches the server's expectations
+                exchange,
+                status,
+            }),
         });
 
         const result = await response.json();
@@ -177,6 +190,7 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
         alert(`An error occurred while updating the ${botName.replace('_', ' ')} status.`);
     }
 }
+
 
 // Add event listeners dynamically for all bot toggle checkboxes
 document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach((checkbox) => {
