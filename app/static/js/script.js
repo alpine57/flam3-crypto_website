@@ -153,27 +153,27 @@ document.getElementById('spot-bot-config-form').addEventListener('submit', async
 
 
 // Function to handle bot status change
-async function handleBotStatusChange(botId, botType, exchange, status) {
+async function handleBotStatusChange(botId, botName, exchange, status) {
     try {
-        const response = await fetch(`/api/bot/${botType}/toggle`, {
+        const response = await fetch(`/api/bot/toggle`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ bot_id: botId, exchange, status }),
+            body: JSON.stringify({ bot_id: botId, bot_name: botName, exchange, status }),
         });
 
         const result = await response.json();
-        console.log(`${botId} (${botType}) Status Updated:`, result);
+        console.log(`${botId} (${botName}) Status Updated:`, result);
 
         if (result.success) {
-            alert(`${botId.replace('_', ' ')} on ${exchange} is now ${status ? 'ON' : 'OFF'}`);
+            alert(`${botName.replace('_', ' ')} on ${exchange} is now ${status ? 'ON' : 'OFF'}`);
         } else {
-            alert(`Failed to update ${botId.replace('_', ' ')} on ${exchange} status.`);
+            alert(`Failed to update ${botName.replace('_', ' ')} on ${exchange} status.`);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert(`An error occurred while updating the ${botId.replace('_', ' ')} status.`);
+        alert(`An error occurred while updating the ${botName.replace('_', ' ')} status.`);
     }
 }
 
@@ -183,11 +183,11 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach((
         const botStatus = this.checked;
         const form = this.closest('form'); // Get the parent form to extract other data
 
-        const botId = form.dataset.botId; // Ensure botId is added to the form in HTML
-        const botType = form.dataset.botType; // Ensure botType is added to the form in HTML
+        const botId = form.parentElement.dataset.botId; // Ensure botId is added to the parent div in HTML
+        const botName = form.parentElement.dataset.botName; // Ensure botName is added to the parent div in HTML
         const exchange = form.querySelector('select[name="exchange"]').value;
 
-        handleBotStatusChange(botId, botType, exchange, botStatus);
+        handleBotStatusChange(botId, botName, exchange, botStatus);
     });
 });
 
