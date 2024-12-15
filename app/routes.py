@@ -183,7 +183,7 @@ def configure_futures_bot(current_user):
 def configure_spot_bot(current_user):
     """Handles Spot bot configuration and saves it to the database."""
     data = request.json
-    bot_name = data.get("botName")  # Extract botName from the request payload
+    bot_name = data.get("botName")
     bot_type = "spot"
     exchange = data.get("exchange")
     api_key = data.get("apiKey")
@@ -192,37 +192,47 @@ def configure_spot_bot(current_user):
     trade_pair = data.get("tradePair")
     time_frame = data.get("timeFrame")
 
-    conn = get_db_connection()
-    cur = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
 
-    # Check if a Spot bot configuration exists for the user
-    cur.execute("""
-        SELECT id FROM spot_bot_configurations
-        WHERE user_id = (SELECT id FROM users WHERE username = %s) 
-          AND bot_type = %s AND exchange = %s
-    """, (current_user, bot_type, exchange))
-    bot_config = cur.fetchone()
+        # Check if the user exists
+        cur.execute("SELECT id FROM users WHERE username = %s", (current_user,))
+        user_id = cur.fetchone()
+        if not user_id:
+            return jsonify({"success": False, "message": "User not found."}), 404
 
-    if bot_config:
-        # Update existing Spot bot configuration
+        # Check if a Spot bot configuration exists for the user
         cur.execute("""
-            UPDATE spot_bot_configurations
-            SET bot_name = %s, api_key = %s, api_secret = %s, trade_amount = %s, trade_pair = %s, 
-                time_frame = %s, updated_at = NOW()
-            WHERE id = %s
-        """, (bot_name, api_key, api_secret, trade_amount, trade_pair, time_frame, bot_config[0]))
-    else:
-        # Insert a new Spot bot configuration
-        cur.execute("""
-            INSERT INTO spot_bot_configurations 
-            (user_id, bot_name, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame)
-            VALUES (
-                (SELECT id FROM users WHERE username = %s), %s, %s, %s, %s, %s, %s, %s, %s
-            )
-        """, (current_user, bot_name, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame))
+            SELECT id FROM spot_bot_configurations
+            WHERE user_id = %s AND bot_type = %s AND exchange = %s
+        """, (user_id[0], bot_type, exchange))
+        bot_config = cur.fetchone()
 
-    conn.commit()
-    return jsonify({"success": True, "message": "Spot bot configuration saved successfully!"})
+        if bot_config:
+            # Update existing configuration
+            cur.execute("""
+                UPDATE spot_bot_configurations
+                SET bot_name = %s, api_key = %s, api_secret = %s, trade_amount = %s, trade_pair = %s, 
+                    time_frame = %s
+                WHERE id = %s
+            """, (bot_name, api_key, api_secret, trade_amount, trade_pair, time_frame, bot_config[0]))
+        else:
+            # Insert new configuration
+            cur.execute("""
+                INSERT INTO spot_bot_configurations 
+                (user_id, bot_name, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (user_id[0], bot_name, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame))
+
+        conn.commit()
+        return jsonify({"success": True, "message": "Spot bot configuration saved successfully!"})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
 
 
 @routes.route('/api/bot/toggle', methods=['POST'])
