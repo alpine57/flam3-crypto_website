@@ -191,16 +191,19 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
     }
 }
 
-
 // Add event listeners dynamically for all bot toggle checkboxes
 document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach((checkbox) => {
     checkbox.addEventListener('change', function () {
         const botStatus = this.checked;
         const form = this.closest('form'); // Get the parent form to extract other data
+        
+        // Find the closest bot container (div) to get the botId and botName
+        const botContainer = form.closest('.bot-container'); 
+        const botId = botContainer.getAttribute('data-bot-id'); // Get the botId from the div's data attribute
+        const botName = botContainer.innerText.trim(); // Get the botName from the inner text of the div
+        const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures'; // Determine botType from section
 
-        const botId = form.dataset.botId; // Ensure botId is added to the form element in HTML
-        const botName = form.dataset.botName; // Ensure botName is added to the form element in HTML
-        const botType = form.dataset.botType; // Ensure botType is added to the form element in HTML
+        // Get the exchange selected in the form
         const exchange = form.querySelector('select[name="exchange"]').value;
 
         handleBotStatusChange(botId, botName, botType, exchange, botStatus);
