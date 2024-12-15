@@ -1,4 +1,4 @@
-import psycopg4
+import psycopg2
 import importlib
 import logging
 
