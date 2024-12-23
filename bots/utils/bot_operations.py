@@ -11,7 +11,6 @@ DB_CONFIG = {
     'port': 5432
 }
 
-
 # Dictionary to track active bot instances
 active_bots = {}
 
@@ -67,17 +66,18 @@ def dynamic_import(bot_name):
     except ImportError as e:
         raise ValueError(f"Failed to import bot: {bot_name}. Error: {e}")
 
-def start_bot(bot_name, bot_type, exchange):
+def start_bot(bot_id, bot_name, bot_type, exchange):
     """
     Starts a bot of the given name, type, and exchange.
 
     Args:
+        bot_id (int): The unique identifier of the bot.
         bot_name (str): The name of the bot to start (e.g., 'spot_bot_1').
         bot_type (str): The type of bot ('spot' or 'futures').
         exchange (str): The exchange name (e.g., 'bybit').
 
     Returns:
-        str: The instance identifier of the started bot.
+        int: The bot_id of the started bot.
     """
     # Fetch bot configuration from the database
     config = get_bot_configuration(bot_name, bot_type, exchange)
@@ -90,20 +90,21 @@ def start_bot(bot_name, bot_type, exchange):
     }
 
     # Dynamically import the start function
-    logging.info(f"Starting bot: {bot_name}, type: {bot_type} on exchange: {exchange}")
+    logging.info(f"Starting bot: {bot_name} (ID: {bot_id}), type: {bot_type} on exchange: {exchange}")
     start_function, _ = dynamic_import(bot_name)
-    instance_id = start_function(**kwargs)
+    start_function(**kwargs)
 
-    # Store the instance identifier of the started bot in the active_bots dictionary
-    active_bots[(bot_name, bot_type, exchange)] = instance_id
-    logging.info(f"Bot {bot_name}, type: {bot_type} started on {exchange} with instance ID: {instance_id}")
-    return instance_id
+    # Store the bot_id in the active_bots dictionary
+    active_bots[(bot_name, bot_type, exchange)] = bot_id
+    logging.info(f"Bot {bot_name} (ID: {bot_id}), type: {bot_type} started on {exchange}")
+    return bot_id
 
-def stop_bot(bot_name, bot_type, exchange):
+def stop_bot(bot_id, bot_name, bot_type, exchange):
     """
     Stops the bot of the given name, type, and exchange.
 
     Args:
+        bot_id (int): The unique identifier of the bot.
         bot_name (str): The name of the bot to stop (e.g., 'spot_bot_1').
         bot_type (str): The type of bot ('spot' or 'futures').
         exchange (str): The exchange name (e.g., 'bybit').
@@ -112,14 +113,32 @@ def stop_bot(bot_name, bot_type, exchange):
         None
     """
     key = (bot_name, bot_type, exchange)
-    if key not in active_bots:
-        raise ValueError(f"No active instance found for bot: {bot_name}, type: {bot_type} on exchange: {exchange}")
-
-    instance_id = active_bots.pop(key)
+    if key not in active_bots or active_bots[key] != bot_id:
+        raise ValueError(f"No active instance found for bot: {bot_name} (ID: {bot_id}), type: {bot_type} on exchange: {exchange}")
 
     # Dynamically import the stop function
-    logging.info(f"Stopping bot: {bot_name}, type: {bot_type} on exchange: {exchange}")
+    logging.info(f"Stopping bot: {bot_name} (ID: {bot_id}), type: {bot_type} on exchange: {exchange}")
     _, stop_function = dynamic_import(bot_name)
-    stop_function(instance_id)
+    stop_function(bot_id)
 
-    logging.info(f"Bot {bot_name}, type: {bot_type} stopped on {exchange}")
+    # Remove the bot from the active_bots dictionary
+    active_bots.pop(key)
+    logging.info(f"Bot {bot_name} (ID: {bot_id}), type: {bot_type} stopped on {exchange}")
+
+def list_active_bots_by_exchange():
+    """
+    Returns a dictionary where exchanges are keys and values are the number of active bots.
+
+    Example:
+        {
+            "binance": 1,  # 1 bot still active
+            "bybit": 3     # 3 bots still active
+        }
+    """
+    active_bots_count = {}
+    for (bot_name, bot_type, exchange), bot_id in active_bots.items():
+        if exchange not in active_bots_count:
+            active_bots_count[exchange] = 0
+        active_bots_count[exchange] += 1
+    return active_bots_count
+
