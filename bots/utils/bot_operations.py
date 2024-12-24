@@ -17,14 +17,15 @@ active_bots = {}
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def get_bot_configuration(bot_name, bot_type, exchange):
+def get_bot_configuration(user_id, bot_name, bot_type, exchange):
     """
-    Fetches bot configuration from the database.
+    Fetches bot configuration from the database for a specific user.
 
     Args:
+        user_id (int): The ID of the user.
         bot_name (str): The name of the bot (e.g., 'spot_bot_1').
         bot_type (str): The type of the bot ('spot' or 'futures').
-        exchange (str): The exchange name (e.g., 'bybit').
+        exchange (str): The exchange name (e.g., 'binance').
 
     Returns:
         dict: The configuration details of the bot.
@@ -33,15 +34,15 @@ def get_bot_configuration(bot_name, bot_type, exchange):
         conn = psycopg2.connect(**DB_CONFIG)
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT id, bot_name, bot_type, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame
-                FROM bot_configurations
-                WHERE bot_name = %s AND bot_type = %s AND exchange = %s
-            """, (bot_name, bot_type, exchange))
+                SELECT id, bot_name, exchange, api_key, api_secret, trade_amount, trade_pair, time_frame, bot_type
+                FROM spot_bot_configurations
+                WHERE user_id = %s AND bot_name = %s AND bot_type = %s AND exchange = %s
+            """, (user_id, bot_name, bot_type, exchange))
             config = cur.fetchone()
             if not config:
-                raise ValueError(f"No configuration found for bot: {bot_name}, type: {bot_type} on exchange: {exchange}")
+                raise ValueError(f"No configuration found for user_id: {user_id}, bot_name: {bot_name}, bot_type: {bot_type}, exchange: {exchange}")
             # Convert tuple to dictionary using column names
-            column_names = ["id", "bot_name", "bot_type", "exchange", "api_key", "api_secret", "trade_amount", "trade_pair", "time_frame"]
+            column_names = ["id", "bot_name", "exchange", "api_key", "api_secret", "trade_amount", "trade_pair", "time_frame", "bot_type"]
             return dict(zip(column_names, config))
     except psycopg2.Error as e:
         logging.error(f"Database error: {e}")
@@ -66,21 +67,21 @@ def dynamic_import(bot_name):
     except ImportError as e:
         raise ValueError(f"Failed to import bot: {bot_name}. Error: {e}")
 
-def start_bot(bot_id, bot_name, bot_type, exchange):
+def start_bot(user_id, bot_name, bot_type, exchange):
     """
-    Starts a bot of the given name, type, and exchange.
+    Starts a bot for a specific user.
 
     Args:
-        bot_id (int): The unique identifier of the bot.
+        user_id (int): The ID of the user starting the bot.
         bot_name (str): The name of the bot to start (e.g., 'spot_bot_1').
-        bot_type (str): The type of bot ('spot' or 'futures').
-        exchange (str): The exchange name (e.g., 'bybit').
+        bot_type (str): The type of the bot ('spot' or 'futures').
+        exchange (str): The exchange name (e.g., 'binance').
 
     Returns:
         int: The bot_id of the started bot.
     """
     # Fetch bot configuration from the database
-    config = get_bot_configuration(bot_name, bot_type, exchange)
+    config = get_bot_configuration(user_id, bot_name, bot_type, exchange)
     kwargs = {
         "api_key": config["api_key"],
         "api_secret": config["api_secret"],
@@ -90,39 +91,36 @@ def start_bot(bot_id, bot_name, bot_type, exchange):
     }
 
     # Dynamically import the start function
-    logging.info(f"Starting bot: {bot_name} (ID: {bot_id}), type: {bot_type} on exchange: {exchange}")
+    logging.info(f"Starting bot: {bot_name} (ID: {config['id']}), type: {bot_type} on exchange: {exchange}")
     start_function, _ = dynamic_import(bot_name)
     start_function(**kwargs)
 
-    # Store the bot_id in the active_bots dictionary
-    active_bots[(bot_name, bot_type, exchange)] = bot_id
-    logging.info(f"Bot {bot_name} (ID: {bot_id}), type: {bot_type} started on {exchange}")
-    return bot_id
+    # Store the bot in the active_bots dictionary
+    active_bots[(user_id, bot_name, bot_type, exchange)] = config["id"]
+    logging.info(f"Bot {bot_name} (ID: {config['id']}), type: {bot_type} started on {exchange}")
+    return config["id"]
 
-def stop_bot(bot_id, bot_name, bot_type, exchange):
+def stop_bot(user_id, bot_name, bot_type, exchange):
     """
-    Stops the bot of the given name, type, and exchange.
+    Stops a bot for a specific user.
 
     Args:
-        bot_id (int): The unique identifier of the bot.
+        user_id (int): The ID of the user stopping the bot.
         bot_name (str): The name of the bot to stop (e.g., 'spot_bot_1').
-        bot_type (str): The type of bot ('spot' or 'futures').
-        exchange (str): The exchange name (e.g., 'bybit').
+        bot_type (str): The type of the bot ('spot' or 'futures').
+        exchange (str): The exchange name (e.g., 'binance').
 
     Returns:
         None
     """
-    key = (bot_name, bot_type, exchange)
-    if key not in active_bots or active_bots[key] != bot_id:
-        raise ValueError(f"No active instance found for bot: {bot_name} (ID: {bot_id}), type: {bot_type} on exchange: {exchange}")
+    key = (user_id, bot_name, bot_type, exchange)
+    if key not in active_bots:
+        raise ValueError(f"No active instance found for user_id: {user_id}, bot: {bot_name}, type: {bot_type} on exchange: {exchange}")
 
-    # Dynamically import the stop function
+    bot_id = active_bots.pop(key)
     logging.info(f"Stopping bot: {bot_name} (ID: {bot_id}), type: {bot_type} on exchange: {exchange}")
     _, stop_function = dynamic_import(bot_name)
     stop_function(bot_id)
-
-    # Remove the bot from the active_bots dictionary
-    active_bots.pop(key)
     logging.info(f"Bot {bot_name} (ID: {bot_id}), type: {bot_type} stopped on {exchange}")
 
 def list_active_bots_by_exchange():
@@ -136,7 +134,7 @@ def list_active_bots_by_exchange():
         }
     """
     active_bots_count = {}
-    for (bot_name, bot_type, exchange), bot_id in active_bots.items():
+    for (user_id, bot_name, bot_type, exchange), bot_id in active_bots.items():
         if exchange not in active_bots_count:
             active_bots_count[exchange] = 0
         active_bots_count[exchange] += 1
