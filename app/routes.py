@@ -6,9 +6,9 @@ from datetime import datetime, timedelta
 import psycopg2
 import os
 from flask import Flask
-from bots.utils.bot_operations import start_bot, stop_bot
+from bots.bot_operations import start_bot, stop_bot
 from bots.bot_operations import BotManager
-from bots.utils.bot_base import BotBase
+from bots.bot_base import BotBase
 from your_database_module import get_bot_configuration  # Function for fetching bot config
 
 bot_manager = BotManager()
