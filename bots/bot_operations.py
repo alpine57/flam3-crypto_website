@@ -140,3 +140,30 @@ def list_active_bots_by_exchange():
         active_bots_count[exchange] += 1
     return active_bots_count
 
+
+
+class BotManager:
+    """
+    Manages bot operations such as starting, stopping, and listing active bots.
+    """
+    @staticmethod
+    def start_bot(user_id, bot_name, bot_type, exchange):
+        """
+        Starts a bot for a specific user.
+        """
+        return start_bot(user_id, bot_name, bot_type, exchange)
+
+    @staticmethod
+    def stop_bot(user_id, bot_name, bot_type, exchange):
+        """
+        Stops a bot for a specific user.
+        """
+        return stop_bot(user_id, bot_name, bot_type, exchange)
+
+    @staticmethod
+    def list_active_bots_by_exchange():
+        """
+        Returns a dictionary where exchanges are keys and values are the number of active bots.
+        """
+        return list_active_bots_by_exchange()
+
