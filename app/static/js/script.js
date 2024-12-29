@@ -263,6 +263,6 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach((
     document.addEventListener('DOMContentLoaded', fetchBalances);
 
     // Optional: Refresh balances periodically
-    setInterval(fetchBalances, 60000); // Fetch every 60 seconds
+    setInterval(fetchBalances, 6000000); // Fetch every 60 seconds
 
 
