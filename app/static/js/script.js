@@ -210,3 +210,59 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach((
     });
 });
 
+
+// codes for updating items such as balances and nunber of bots active 
+
+ async function fetchActiveBots() {
+        try {
+            // Fetch the data from the API
+            const response = await fetch('/api/active_bots');
+            if (!response.ok) {
+                throw new Error(`Error fetching data: ${response.statusText}`);
+            }
+            const data = await response.json();
+
+            // Update the DOM
+            if (data.binance !== undefined) {
+                document.getElementById('binance-bots').textContent =
+                    `Number of bots running: ${data.binance}`;
+            }
+            if (data.bybit !== undefined) {
+                document.getElementById('bybit-bots').textContent =
+                    `Number of bots running: ${data.bybit}`;
+            }
+        } catch (error) {
+            console.error("Failed to fetch active bots:", error);
+        }
+    }
+
+    // Call the function on page load
+    document.addEventListener('DOMContentLoaded', fetchActiveBots);
+ async function fetchBalances() {
+        try {
+            // Fetch balance data from the API
+            const response = await fetch('/api/balances');
+            if (!response.ok) {
+                throw new Error(`Error fetching balances: ${response.statusText}`);
+            }
+            const data = await response.json();
+
+            // Update the DOM with the fetched balances
+            if (data.binance) {
+                document.getElementById('binance-balance').textContent = `Balance: ${data.binance}`;
+            }
+            if (data.bybit) {
+                document.getElementById('bybit-balance').textContent = `Balance: ${data.bybit}`;
+            }
+        } catch (error) {
+            console.error("Failed to fetch balances:", error);
+        }
+    }
+
+    // Call the function on page load
+    document.addEventListener('DOMContentLoaded', fetchBalances);
+
+    // Optional: Refresh balances periodically
+    setInterval(fetchBalances, 60000); // Fetch every 60 seconds
+
+

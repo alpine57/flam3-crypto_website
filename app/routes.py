@@ -7,6 +7,11 @@ import psycopg2
 import os
 from flask import Flask
 from bots.utils.bot_operations import start_bot, stop_bot
+from bots.utils.bot_operations import BotManager
+from bots.utils.bot_base import BotBase
+from your_database_module import get_bot_configuration  # Function for fetching bot config
+
+bot_manager = BotManager()
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -235,39 +240,78 @@ def configure_spot_bot(current_user):
         conn.close()
 
 
-@routes.route('/api/bot/toggle', methods=['POST'])
+@app.route('/api/bot/toggle', methods=['POST'])
 def toggle_bot():
-    """
-    Toggle bot status (start or stop) based on the given parameters.
-    """
     data = request.get_json()
 
-    # Debugging: Log received data
-    print(f"Received data: {data}")
-
-    # Validate the input payload
-    required_fields = ['status', 'bot_id', 'bot_name', 'exchange']
+    # Validate input
+    required_fields = ['status', 'bot_name', 'bot_type', 'exchange']
     missing_fields = [field for field in required_fields if field not in data]
-
     if missing_fields:
-        return jsonify({
-            "success": False,
-            "message": f"Missing fields: {', '.join(missing_fields)}"
-        }), 400
+        return jsonify({"success": False, "message": f"Missing fields: {', '.join(missing_fields)}"}), 400
 
-    status = data.get('status')
-    bot_id = data.get('bot_id')
-    bot_name = data.get('bot_name')
-    exchange = data.get('exchange')
+    status = data['status']
+    bot_name = data['bot_name']
+    bot_type = data['bot_type']
+    exchange = data['exchange']
 
     try:
+        # Fetch bot configuration from DB
+        config = get_bot_configuration(bot_name, bot_type, exchange)
+        
         if status:
-            bot_id = start_bot(bot_id=bot_id, bot_name=bot_name, exchange=exchange)
-            return jsonify({"success": True, "message": f"Bot {bot_name} started.", "bot_id": bot_id}), 200
+            bot_manager.start_bot(bot_name, exchange, config)
+            return jsonify({"success": True, "message": f"Bot {bot_name} started."}), 200
         else:
-            stop_bot(bot_id=bot_id, bot_name=bot_name, exchange=exchange)
+            bot_manager.stop_bot(bot_name, exchange)
             return jsonify({"success": True, "message": f"Bot {bot_name} stopped."}), 200
     except Exception as e:
-        print(f"Error toggling bot: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
+
+
+# API Keys for Binance and Bybit
+BINANCE_API_KEY = "your_binance_api_key"
+BINANCE_API_SECRET = "your_binance_api_secret"
+BYBIT_API_KEY = "your_bybit_api_key"
+BYBIT_API_SECRET = "your_bybit_api_secret"
+
+@app.route('/api/balances', methods=['GET'])
+def get_balances():
+    """
+    Fetch balances from Binance and Bybit APIs.
+    """
+    balances = {}
+    try:
+        # Fetch Binance balance
+        binance_api = BinanceAPI(BINANCE_API_KEY, BINANCE_API_SECRET)
+        binance_balance_response = binance_api.get_balance()
+        binance_balance = binance_balance_response.get("totalAssetOfBtc", 0)  # Adjust key for specific balance
+
+        # Fetch Bybit balance
+        bybit_api = BybitAPI(BYBIT_API_KEY, BYBIT_API_SECRET)
+        bybit_balance_response = bybit_api.get_balance()
+        bybit_balance = bybit_balance_response["result"]["BTC"]["equity"]  # Example key for Bybit balance in BTC
+
+        # Aggregate balances (convert BTC to USD if needed)
+        balances = {
+            "binance": f"${binance_balance * 26000:.2f}",  # Assuming 1 BTC = $26,000
+            "bybit": f"${bybit_balance * 26000:.2f}"
+        }
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify(balances)
+
+@app.route('/api/active_bots', methods=['GET'])
+def get_active_bots():
+    """
+    Returns the number of active bots for each exchange.
+    """
+    try:
+        active_bots = list_active_bots_by_exchange()
+        return jsonify(active_bots)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
