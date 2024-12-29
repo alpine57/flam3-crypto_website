@@ -8,7 +8,6 @@ import os
 from flask import Flask
 from bots.bot_operations import start_bot, stop_bot, list_active_bots_by_exchange
 from bots.bot_operations import BotManager
-from your_database_module import get_bot_configuration  # Function for fetching bot config
 
 bot_manager = BotManager()
 
