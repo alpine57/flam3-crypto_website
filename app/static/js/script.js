@@ -1,14 +1,46 @@
-// Store configurations for each bot separately
+// Store configurations and states for each bot separately
 const botConfigurations = {
     spot: {},
     futures: {}
 };
+
+// Add a separate state tracker for bot status
+const botStates = {
+    spot: {},
+    futures: {}
+};
+
+// Load saved states from localStorage on startup
+function loadSavedStates() {
+    const savedStates = localStorage.getItem('botStates');
+    if (savedStates) {
+        Object.assign(botStates, JSON.parse(savedStates));
+    }
+}
+
+// Save states to localStorage
+function saveBotStates() {
+    localStorage.setItem('botStates', JSON.stringify(botStates));
+}
 
 // Section navigation
 function showSection(sectionId) {
     const sections = document.querySelectorAll('.content');
     sections.forEach(section => {
         section.style.display = section.id === sectionId ? 'flex' : 'none';
+    });
+}
+
+// Update UI to reflect current bot states
+function updateBotToggleUi() {
+    document.querySelectorAll('.bot-container').forEach(container => {
+        const botId = container.getAttribute('data-bot-id');
+        const botType = container.closest('#spot-section') ? 'spot' : 'futures';
+        const checkbox = container.querySelector('input[type="checkbox"][name="bot-status"]');
+        
+        if (checkbox && botStates[botType][botId] !== undefined) {
+            checkbox.checked = botStates[botType][botId];
+        }
     });
 }
 
@@ -33,7 +65,7 @@ document.getElementById('settings-link').addEventListener('click', function(even
     showSection('settings-section');
 });
 
-// Bot configuration form handlers
+// Form display functions
 function showSpotBotConfigForm(botName, botId) {
     const form = document.getElementById('spot-bot-config-form');
     form.setAttribute('data-current-bot-id', botId);
@@ -47,15 +79,18 @@ function showSpotBotConfigForm(botName, botId) {
             const element = document.getElementById(`spot-${key}`);
             if (element) {
                 if (element.type === 'checkbox') {
-                    element.checked = value;
+                    element.checked = botStates.spot[botId] || false;
                 } else {
                     element.value = value;
                 }
             }
         });
     } else {
-        // Clear form if no existing configuration
         form.reset();
+        const statusCheckbox = form.querySelector('input[name="bot-status"]');
+        if (statusCheckbox) {
+            statusCheckbox.checked = botStates.spot[botId] || false;
+        }
     }
     
     document.getElementById('spot-bot-config-container').style.display = 'block';
@@ -74,15 +109,18 @@ function showFuturesBotConfigForm(botName, botId) {
             const element = document.getElementById(`futures-${key}`);
             if (element) {
                 if (element.type === 'checkbox') {
-                    element.checked = value;
+                    element.checked = botStates.futures[botId] || false;
                 } else {
                     element.value = value;
                 }
             }
         });
     } else {
-        // Clear form if no existing configuration
         form.reset();
+        const statusCheckbox = form.querySelector('input[name="bot-status"]');
+        if (statusCheckbox) {
+            statusCheckbox.checked = botStates.futures[botId] || false;
+        }
     }
     
     document.getElementById('futures-bot-config-container').style.display = 'block';
@@ -117,10 +155,10 @@ document.getElementById('spot-bot-config-form').addEventListener('submit', async
         apiSecret: document.getElementById('spot-api-secret').value,
         tradeAmount: document.getElementById('spot-trade-amount').value,
         tradePair: document.getElementById('spot-trade-pair').value,
-        timeFrame: document.getElementById('spot-time-frame').value
+        timeFrame: document.getElementById('spot-time-frame').value,
+        status: botStates.spot[currentBotId] || false
     };
     
-    // Save configuration for this specific bot
     botConfigurations.spot[currentBotId] = config;
     
     try {
@@ -167,10 +205,10 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
         tradeAmount: document.getElementById('futures-trade-amount').value,
         tradePair: document.getElementById('futures-trade-pair').value,
         leverage: document.getElementById('leverage').value,
-        timeFrame: document.getElementById('futures-time-frame').value
+        timeFrame: document.getElementById('futures-time-frame').value,
+        status: botStates.futures[currentBotId] || false
     };
     
-    // Save configuration for this specific bot
     botConfigurations.futures[currentBotId] = config;
     
     try {
@@ -225,13 +263,24 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
         console.log(`${botId} Status Updated:`, result);
         
         if (result.success) {
+            botStates[botType][botId] = status;
+            saveBotStates();
+            
             alert(`${botName.replace('_', ' ')} on ${exchange} is now ${status ? 'ON' : 'OFF'}`);
-            await fetchActiveBots(); // Refresh active bots count
+            await fetchActiveBots();
         } else {
+            const checkbox = document.querySelector(`[data-bot-id="${botId}"] input[type="checkbox"]`);
+            if (checkbox) {
+                checkbox.checked = botStates[botType][botId] || false;
+            }
             alert(`Failed to update ${botName.replace('_', ' ')} status`);
         }
     } catch (error) {
         console.error('Error:', error);
+        const checkbox = document.querySelector(`[data-bot-id="${botId}"] input[type="checkbox"]`);
+        if (checkbox) {
+            checkbox.checked = botStates[botType][botId] || false;
+        }
         alert(`An error occurred while updating the ${botName.replace('_', ' ')} status`);
     }
 }
@@ -243,13 +292,15 @@ function setupBotToggleListeners() {
         const newCheckbox = checkbox.cloneNode(true);
         checkbox.parentNode.replaceChild(newCheckbox, checkbox);
         
+        const botContainer = newCheckbox.closest('.bot-container');
+        const botId = botContainer.getAttribute('data-bot-id');
+        const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures';
+        newCheckbox.checked = botStates[botType][botId] || false;
+        
         newCheckbox.addEventListener('change', function(event) {
             event.stopPropagation();
             
-            const botContainer = this.closest('.bot-container');
-            const botId = botContainer.getAttribute('data-bot-id');
             const botName = botContainer.innerText.trim();
-            const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures';
             const form = this.closest('form');
             const exchange = form ? form.querySelector('select[name="exchange"]').value : 'binance';
             
@@ -301,7 +352,9 @@ async function fetchBalances() {
 
 // Initialize everything when the page loads
 document.addEventListener('DOMContentLoaded', function() {
+    loadSavedStates();
     setupBotToggleListeners();
+    updateBotToggleUi();
     fetchActiveBots();
     fetchBalances();
 });
