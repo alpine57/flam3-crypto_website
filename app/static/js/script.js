@@ -37,7 +37,7 @@ function updateBotToggleUi() {
         const botId = container.getAttribute('data-bot-id');
         const botType = container.closest('#spot-section') ? 'spot' : 'futures';
         const checkbox = container.querySelector('input[type="checkbox"][name="bot-status"]');
-        
+
         if (checkbox && botStates[botType][botId] !== undefined) {
             checkbox.checked = botStates[botType][botId];
         }
@@ -65,21 +65,20 @@ document.getElementById('settings-link').addEventListener('click', function(even
     showSection('settings-section');
 });
 
-// Form display functions
-function showSpotBotConfigForm(botName, botId) {
-    const form = document.getElementById('spot-bot-config-form');
+// Show bot configuration form
+function showBotConfigForm(botType, botName, botId) {
+    const form = document.getElementById(`${botType}-bot-config-form`);
     form.setAttribute('data-current-bot-id', botId);
-    
-    document.getElementById('spot-bot-config-header').innerText = `${botName} Configuration`;
-    
-    // Load existing configuration if available
-    const existingConfig = botConfigurations.spot[botId];
+
+    document.getElementById(`${botType}-bot-config-header`).innerText = `${botName} Configuration`;
+    const existingConfig = botConfigurations[botType][botId];
+
     if (existingConfig) {
         Object.entries(existingConfig).forEach(([key, value]) => {
-            const element = document.getElementById(`spot-${key}`);
+            const element = document.getElementById(`${botType}-${key}`);
             if (element) {
                 if (element.type === 'checkbox') {
-                    element.checked = botStates.spot[botId] || false;
+                    element.checked = value;
                 } else {
                     element.value = value;
                 }
@@ -87,139 +86,66 @@ function showSpotBotConfigForm(botName, botId) {
         });
     } else {
         form.reset();
-        const statusCheckbox = form.querySelector('input[name="bot-status"]');
-        if (statusCheckbox) {
-            statusCheckbox.checked = botStates.spot[botId] || false;
-        }
     }
-    
-    document.getElementById('spot-bot-config-container').style.display = 'block';
-}
 
-function showFuturesBotConfigForm(botName, botId) {
-    const form = document.getElementById('futures-bot-config-form');
-    form.setAttribute('data-current-bot-id', botId);
-    
-    document.getElementById('futures-bot-config-header').innerText = `${botName} Configuration`;
-    
-    // Load existing configuration if available
-    const existingConfig = botConfigurations.futures[botId];
-    if (existingConfig) {
-        Object.entries(existingConfig).forEach(([key, value]) => {
-            const element = document.getElementById(`futures-${key}`);
-            if (element) {
-                if (element.type === 'checkbox') {
-                    element.checked = botStates.futures[botId] || false;
-                } else {
-                    element.value = value;
-                }
-            }
-        });
-    } else {
-        form.reset();
-        const statusCheckbox = form.querySelector('input[name="bot-status"]');
-        if (statusCheckbox) {
-            statusCheckbox.checked = botStates.futures[botId] || false;
-        }
+    const statusCheckbox = form.querySelector('input[name="bot-status"]');
+    if (statusCheckbox) {
+        statusCheckbox.checked = botStates[botType][botId] || false;
     }
-    
-    document.getElementById('futures-bot-config-container').style.display = 'block';
+
+    document.getElementById(`${botType}-bot-config-container`).style.display = 'block';
 }
 
-function closeSpotBotConfigForm() {
-    document.getElementById('spot-bot-config-container').style.display = 'none';
-}
-
-function closeFuturesBotConfigForm() {
-    document.getElementById('futures-bot-config-container').style.display = 'none';
+function closeBotConfigForm(botType) {
+    document.getElementById(`${botType}-bot-config-container`).style.display = 'none';
 }
 
 // Form submission handlers
 document.getElementById('spot-bot-config-form').addEventListener('submit', async function(event) {
     event.preventDefault();
-    
-    const currentBotId = this.getAttribute('data-current-bot-id');
-    if (!currentBotId) {
-        console.error('No bot ID found for form submission');
-        return;
-    }
-    
-    const botName = document.getElementById('spot-bot-config-header').innerText
-        .replace(' Configuration', '');
-        
-    const config = {
-        botId: currentBotId,
-        botName,
-        exchange: document.getElementById('futures-exchange').value,
-        apiKey: document.getElementById('spot-api-key').value,
-        apiSecret: document.getElementById('spot-api-secret').value,
-        tradeAmount: document.getElementById('spot-trade-amount').value,
-        tradePair: document.getElementById('spot-trade-pair').value,
-        timeFrame: document.getElementById('spot-time-frame').value,
-        status: botStates.spot[currentBotId] || false
-    };
-    
-    botConfigurations.spot[currentBotId] = config;
-    
-    try {
-        const response = await fetch('/api/bot/spot/config', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(config)
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-            alert(`${botName} configuration updated successfully!`);
-        } else {
-            alert(`Failed to update the configuration for ${botName}`);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert(`An error occurred while updating the configuration for ${botName}`);
-    }
-    
-    closeSpotBotConfigForm();
+    await submitBotConfigForm('spot', this);
 });
 
 document.getElementById('futures-bot-config-form').addEventListener('submit', async function(event) {
     event.preventDefault();
-    
-    const currentBotId = this.getAttribute('data-current-bot-id');
+    await submitBotConfigForm('futures', this);
+});
+
+async function submitBotConfigForm(botType, form) {
+    const currentBotId = form.getAttribute('data-current-bot-id');
     if (!currentBotId) {
         console.error('No bot ID found for form submission');
         return;
     }
-    
-    const botName = document.getElementById('futures-bot-config-header').innerText
+
+    const botName = document.getElementById(`${botType}-bot-config-header`).innerText
         .replace(' Configuration', '');
-        
+
     const config = {
         botId: currentBotId,
         botName,
-        exchange: document.getElementById('futures-exchange').value,
-        apiKey: document.getElementById('futures-api-key').value,
-        apiSecret: document.getElementById('futures-api-secret').value,
-        tradeAmount: document.getElementById('futures-trade-amount').value,
-        tradePair: document.getElementById('futures-trade-pair').value,
-        leverage: document.getElementById('leverage').value,
-        timeFrame: document.getElementById('futures-time-frame').value,
-        status: botStates.futures[currentBotId] || false
+        exchange: document.getElementById(`${botType}-exchange`).value,
+        apiKey: document.getElementById(`${botType}-api-key`).value,
+        apiSecret: document.getElementById(`${botType}-api-secret`).value,
+        tradeAmount: document.getElementById(`${botType}-trade-amount`).value,
+        tradePair: document.getElementById(`${botType}-trade-pair`).value,
+        timeFrame: document.getElementById(`${botType}-time-frame`).value,
+        status: botStates[botType][currentBotId] || false
     };
-    
-    botConfigurations.futures[currentBotId] = config;
-    
+
+    if (botType === 'futures') {
+        config.leverage = document.getElementById('leverage').value;
+    }
+
+    botConfigurations[botType][currentBotId] = config;
+
     try {
-        const response = await fetch('/api/bot/futures/config', {
+        const response = await fetch(`/api/bot/${botType}/config`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(config)
         });
-        
+
         const result = await response.json();
         if (result.success) {
             alert(`${botName} configuration updated successfully!`);
@@ -230,26 +156,18 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
         console.error('Error:', error);
         alert(`An error occurred while updating the configuration for ${botName}`);
     }
-    
-    closeFuturesBotConfigForm();
-});
+
+    closeBotConfigForm(botType);
+}
 
 // Bot status management
 async function handleBotStatusChange(botId, botName, botType, exchange, status) {
-    console.log("Status change request:", {
-        bot_id: botId,
-        bot_name: botName,
-        bot_type: botType,
-        exchange,
-        status
-    });
+    console.log("Status change request:", { botId, botName, botType, exchange, status });
 
     try {
         const response = await fetch('/api/bot/toggle', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 bot_id: botId,
                 bot_name: botName,
@@ -258,30 +176,20 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
                 status
             })
         });
-        
+
         const result = await response.json();
-        console.log(`${botId} Status Updated:`, result);
-        
         if (result.success) {
             botStates[botType][botId] = status;
             saveBotStates();
-            
-            alert(`${botName.replace('_', ' ')} on ${exchange} is now ${status ? 'ON' : 'OFF'}`);
+            updateBotToggleUi();
+            alert(`${botName} on ${exchange} is now ${status ? 'ON' : 'OFF'}`);
             await fetchActiveBots();
         } else {
-            const checkbox = document.querySelector(`[data-bot-id="${botId}"] input[type="checkbox"]`);
-            if (checkbox) {
-                checkbox.checked = botStates[botType][botId] || false;
-            }
-            alert(`Failed to update ${botName.replace('_', ' ')} status`);
+            throw new Error(result.message || 'Status update failed.');
         }
     } catch (error) {
         console.error('Error:', error);
-        const checkbox = document.querySelector(`[data-bot-id="${botId}"] input[type="checkbox"]`);
-        if (checkbox) {
-            checkbox.checked = botStates[botType][botId] || false;
-        }
-        alert(`An error occurred while updating the ${botName.replace('_', ' ')} status`);
+        alert(`Failed to update ${botName} status. Please try again.`);
     }
 }
 
@@ -289,21 +197,15 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
 function setupBotToggleListeners() {
     const checkboxes = document.querySelectorAll('input[type="checkbox"][name="bot-status"]');
     checkboxes.forEach(checkbox => {
-        const newCheckbox = checkbox.cloneNode(true);
-        checkbox.parentNode.replaceChild(newCheckbox, checkbox);
-        
-        const botContainer = newCheckbox.closest('.bot-container');
-        const botId = botContainer.getAttribute('data-bot-id');
-        const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures';
-        newCheckbox.checked = botStates[botType][botId] || false;
-        
-        newCheckbox.addEventListener('change', function(event) {
+        checkbox.addEventListener('change', function(event) {
             event.stopPropagation();
-            
-            const botName = botContainer.innerText.trim();
-            const form = this.closest('form');
-            const exchange = form ? form.querySelector('select[name="exchange"]').value : 'binance';
-            
+
+            const botContainer = this.closest('.bot-container');
+            const botId = botContainer.getAttribute('data-bot-id');
+            const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures';
+            const botName = botContainer.querySelector('.bot-name').textContent.trim();
+            const exchange = botType === 'spot' ? 'binance' : 'bybit';
+
             handleBotStatusChange(botId, botName, botType, exchange, this.checked);
         });
     });
@@ -313,18 +215,14 @@ function setupBotToggleListeners() {
 async function fetchActiveBots() {
     try {
         const response = await fetch('/api/active_bots');
-        if (!response.ok) {
-            throw new Error(`Error fetching data: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Error fetching data: ${response.statusText}`);
+
         const data = await response.json();
-        
         if (data.binance !== undefined) {
-            document.getElementById('binance-bots').textContent = 
-                `Number of bots running: ${data.binance}`;
+            document.getElementById('binance-bots').textContent = `Number of bots running: ${data.binance}`;
         }
         if (data.bybit !== undefined) {
-            document.getElementById('bybit-bots').textContent = 
-                `Number of bots running: ${data.bybit}`;
+            document.getElementById('bybit-bots').textContent = `Number of bots running: ${data.bybit}`;
         }
     } catch (error) {
         console.error("Failed to fetch active bots:", error);
@@ -334,11 +232,9 @@ async function fetchActiveBots() {
 async function fetchBalances() {
     try {
         const response = await fetch('/api/balances');
-        if (!response.ok) {
-            throw new Error(`Error fetching balances: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Error fetching balances: ${response.statusText}`);
+
         const data = await response.json();
-        
         if (data.binance) {
             document.getElementById('binance-balance').textContent = `Balance: ${data.binance}`;
         }
@@ -351,18 +247,13 @@ async function fetchBalances() {
 }
 
 // Initialize everything when the page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async () => {
     loadSavedStates();
     setupBotToggleListeners();
     updateBotToggleUi();
-    fetchActiveBots();
-    fetchBalances();
+    await Promise.all([fetchActiveBots(), fetchBalances()]);
+    setInterval(async () => {
+        await Promise.all([fetchActiveBots(), fetchBalances()]);
+    }, 60000);
 });
 
-// Set up periodic data refresh
-setInterval(async () => {
-    await Promise.all([
-        fetchActiveBots(),
-        fetchBalances()
-    ]);
-}, 60000); // Refresh every minute
