@@ -1,8 +1,8 @@
 import psycopg2
 import importlib
 import logging
-from exchanges.bybit_api import BybitAPI
-from exchanges.binance_api import BinanceAPI
+from bots.exchanges.bybit_api import BybitAPI
+from bots.exchanges.binance_api import BinanceAPI
 
 # Database connection setup
 DB_CONFIG = {
