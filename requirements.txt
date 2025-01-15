@@ -20,7 +20,6 @@ Jinja2==3.1.4
 MarkupSafe==2.1.5
 multidict==6.1.0
 packaging==24.1
-pkg_resources==0.0.0
 propcache==0.2.0
 psycopg2-binary==2.9.10
 pycryptodome==3.21.0
