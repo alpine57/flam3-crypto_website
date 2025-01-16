@@ -1,7 +1,7 @@
 import psycopg2
 import importlib
 import logging
-from utils.bot_operations import BotManager
+from bots.utils.bot_operations import BotManager
 
 # Database connection setup
 DB_CONFIG = {
