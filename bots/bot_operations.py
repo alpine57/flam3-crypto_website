@@ -1,6 +1,7 @@
 import psycopg2
 import importlib
 import logging
+from utils.bot_operations import BotManager
 
 # Database connection setup
 DB_CONFIG = {
@@ -11,9 +12,11 @@ DB_CONFIG = {
     'port': 5432
 }
 
+# Dictionary to track active bot instances
+active_bots = {}
+
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
 
 def get_bot_configuration(user_id, bot_name, bot_type, exchange):
     """
@@ -93,10 +96,8 @@ def start_bot(user_id, bot_name, bot_type, exchange):
     start_function, _ = dynamic_import(bot_name)
     start_function(**kwargs)
 
-    # Add bot to the BotManager
-    bot_manager = BotManager()
-    bot_manager.start_bot(user_id, bot_name, bot_type, exchange)
-
+    # Store the bot in the active_bots dictionary
+    active_bots[(user_id, bot_name, bot_type, exchange)] = config["id"]
     logging.info(f"Bot {bot_name} (ID: {config['id']}), type: {bot_type} started on {exchange}")
     return config["id"]
 
@@ -113,8 +114,6 @@ def stop_bot(user_id, bot_name, bot_type, exchange):
     Returns:
         None
     """
-    bot_manager = BotManager()
-
     key = (user_id, bot_name, bot_type, exchange)
     if key not in active_bots:
         raise ValueError(f"No active instance found for user_id: {user_id}, bot: {bot_name}, type: {bot_type} on exchange: {exchange}")
@@ -123,9 +122,6 @@ def stop_bot(user_id, bot_name, bot_type, exchange):
     logging.info(f"Stopping bot: {bot_name} (ID: {bot_id}), type: {bot_type} on exchange: {exchange}")
     _, stop_function = dynamic_import(bot_name)
     stop_function(bot_id)
-
-    # Remove bot from BotManager
-    bot_manager.stop_bot(user_id, bot_name, bot_type, exchange)
     logging.info(f"Bot {bot_name} (ID: {bot_id}), type: {bot_type} stopped on {exchange}")
 
 def list_active_bots_by_exchange():
@@ -146,28 +142,28 @@ def list_active_bots_by_exchange():
     return active_bots_count
 
 
+
 class BotManager:
     """
     Manages bot operations such as starting, stopping, and listing active bots.
     """
-    def __init__(self):
-        self.bot_manager = BotManager()
-
-    def start_bot(self, user_id, bot_name, bot_type, exchange):
+    @staticmethod
+    def start_bot(user_id, bot_name, bot_type, exchange):
         """
         Starts a bot for a specific user.
         """
         return start_bot(user_id, bot_name, bot_type, exchange)
 
-    def stop_bot(self, user_id, bot_name, bot_type, exchange):
+    @staticmethod
+    def stop_bot(user_id, bot_name, bot_type, exchange):
         """
         Stops a bot for a specific user.
         """
         return stop_bot(user_id, bot_name, bot_type, exchange)
 
-    def list_active_bots_by_exchange(self):
+    @staticmethod
+    def list_active_bots_by_exchange():
         """
         Returns a dictionary where exchanges are keys and values are the number of active bots.
         """
         return list_active_bots_by_exchange()
-
