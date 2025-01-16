@@ -1,6 +1,6 @@
 import logging
-from exchanges.bybit_api import BybitAPI
-from exchanges.binance_api import BinanceAPI
+from bots.exchanges.bybit_api import BybitAPI
+from bots.exchanges.binance_api import BinanceAPI
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
