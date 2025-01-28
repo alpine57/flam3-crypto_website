@@ -1,3 +1,6 @@
+// Object to store toggle statuses (client-side)
+const botConfigs = {};
+
 // Function to show a section and hide others
 function showSection(sectionId) {
     const sections = document.querySelectorAll('.content');
@@ -26,9 +29,6 @@ document.getElementById('settings-link').addEventListener('click', function (eve
     event.preventDefault();
     showSection('settings-section');
 });
-
-// Object to store configurations for each bot
-const botConfigs = {};
 
 // Function to open the configuration form for a specific bot
 function showSpotBotConfigForm(botName, botId) {
@@ -62,40 +62,72 @@ function showSpotBotConfigForm(botName, botId) {
 
 // Function to close the configuration form
 function closeSpotBotConfigForm() {
-    // Save the current form state before closing
-    const botId = document.getElementById('spot-bot-config-form').dataset.botId;
-
-    botConfigs[botId] = {
-        exchange: document.getElementById('futures-exchange').value,
-        apiKey: document.getElementById('spot-api-key').value,
-        apiSecret: document.getElementById('spot-api-secret').value,
-        tradeAmount: document.getElementById('spot-trade-amount').value,
-        tradePair: document.getElementById('spot-trade-pair').value,
-        timeFrame: document.getElementById('spot-time-frame').value,
-        botStatus: document.getElementById('spot-bot-status').checked, // Save toggle state
-    };
-
     document.getElementById('spot-bot-config-container').style.display = 'none';
 }
 
 // Submit handler for the Spot Bot Configuration form
-document.getElementById('spot-bot-config-form').addEventListener('submit', function (event) {
+document.getElementById('spot-bot-config-form').addEventListener('submit', async function (event) {
     event.preventDefault();
 
     const botId = event.target.dataset.botId;
 
     // Save the form data into the botConfigs object
-    botConfigs[botId] = {
+    const config = {
         exchange: document.getElementById('futures-exchange').value,
         apiKey: document.getElementById('spot-api-key').value,
         apiSecret: document.getElementById('spot-api-secret').value,
         tradeAmount: document.getElementById('spot-trade-amount').value,
         tradePair: document.getElementById('spot-trade-pair').value,
         timeFrame: document.getElementById('spot-time-frame').value,
-        botStatus: document.getElementById('spot-bot-status').checked, // Save toggle state
+        botStatus: document.getElementById('spot-bot-status').checked, // Save toggle state locally
     };
 
-    console.log(`Saved configuration for ${botId}:`, botConfigs[botId]);
+    botConfigs[botId] = config;
+
+    console.log(`Saved configuration for ${botId} (local state):`, config);
+
+    // Send the configuration to the backend
+    try {
+        const response = await fetch('/api/bot/spot/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                botId,
+                ...config,
+            }),
+        });
+
+        const result = await response.json();
+        console.log('Server Response:', result);
+
+        if (result.success) {
+            alert(`Configuration for ${botId} saved successfully!`);
+        } else {
+            alert(`Failed to save configuration for ${botId}.`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while saving the configuration.');
+    }
+
     closeSpotBotConfigForm();
+});
+
+// Function to handle toggle status changes (client-side only)
+document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach((checkbox) => {
+    checkbox.addEventListener('change', function () {
+        const botId = this.dataset.botId; // Assume the checkbox has a data-bot-id attribute
+        const botStatus = this.checked;
+
+        if (!botConfigs[botId]) {
+            botConfigs[botId] = { botStatus }; // Initialize with default values if not present
+        } else {
+            botConfigs[botId].botStatus = botStatus; // Update the bot's status in local state
+        }
+
+        console.log(`Bot ${botId} status updated (local):`, botStatus);
+    });
 });
 
