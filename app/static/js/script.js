@@ -25,77 +25,77 @@ function showSection(sectionId) {
             showSection('settings-section');
         });
 
-        function showSpotBotConfigForm(botName) {
-            document.getElementById('spot-bot-config-header').innerText = botName + ' Configuration';
-            document.getElementById('spot-bot-config-container').style.display = 'block';
-        }
+         async function showSpotBotConfigForm(botName, botId) {
+    document.getElementById('spot-bot-config-header').innerText = `${botName} Configuration`;
 
-        function closeSpotBotConfigForm() {
-            document.getElementById('spot-bot-config-container').style.display = 'none';
-        }
+    try {
+        // Fetch configuration for the bot from the backend
+        const response = await fetch(`/api/spot-bots/${botId}`);
+        const config = await response.json();
 
-        function showFuturesBotConfigForm(botName) {
-            document.getElementById('futures-bot-config-header').innerText = botName + ' Configuration';
-            document.getElementById('futures-bot-config-container').style.display = 'block';
-        }
+        // Populate the form with the bot's specific configuration
+        document.getElementById('futures-exchange').value = config.exchange || 'binance';
+        document.getElementById('spot-api-key').value = config.apiKey || '';
+        document.getElementById('spot-api-secret').value = config.apiSecret || '';
+        document.getElementById('spot-trade-amount').value = config.tradeAmount || '';
+        document.getElementById('spot-trade-pair').value = config.tradePair || '';
+        document.getElementById('spot-time-frame').value = config.timeFrame || '1m';
+        document.getElementById('spot-bot-status').checked = config.botStatus || false;
 
-        function closeFuturesBotConfigForm() {
-            document.getElementById('futures-bot-config-container').style.display = 'none';
-        }
+        document.getElementById('spot-bot-config-container').style.display = 'block';
 
-        document.getElementById('spot-bot-config-form').addEventListener('submit', function(event) {
-            event.preventDefault();
+        // Save the botId for use in the submit handler
+        document.getElementById('spot-bot-config-form').dataset.botId = botId;
+    } catch (error) {
+        console.error('Failed to fetch bot configuration:', error);
+        alert('Error loading bot configuration. Please try again.');
+    }
+}
 
-            const exchange = document.getElementById('spot-exchange').value;
-            const apiKey = document.getElementById('spot-api-key').value;
-            const apiSecret = document.getElementById('spot-api-secret').value;
-            const tradeAmount = document.getElementById('spot-trade-amount').value;
-            const tradePair = document.getElementById('spot-trade-pair').value;
-            const timeFrame = document.getElementById('spot-time-frame').value;
-            const botStatus = document.getElementById('spot-bot-status').checked;
+// Close form
+function closeSpotBotConfigForm() {
+    document.getElementById('spot-bot-config-container').style.display = 'none';
+}
 
-            const spotBotConfig = {
-                exchange,
-                apiKey,
-                apiSecret,
-                tradeAmount,
-                tradePair,
-                timeFrame,
-                
-            };
+// Submit handler
+document.getElementById('spot-bot-config-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
 
-            console.log('Spot Bot Configuration:', spotBotConfig);
-            closeSpotBotConfigForm();
+    const botId = event.target.dataset.botId;
+
+    // Collect form data
+    const config = {
+        exchange: document.getElementById('futures-exchange').value,
+        apiKey: document.getElementById('spot-api-key').value,
+        apiSecret: document.getElementById('spot-api-secret').value,
+        tradeAmount: document.getElementById('spot-trade-amount').value,
+        tradePair: document.getElementById('spot-trade-pair').value,
+        timeFrame: document.getElementById('spot-time-frame').value,
+        botStatus: document.getElementById('spot-bot-status').checked,
+    };
+
+    try {
+        // Save configuration to the backend
+        const response = await fetch(`/api/spot-bots/${botId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config),
         });
 
-        document.getElementById('futures-bot-config-form').addEventListener('submit', function(event) {
-            event.preventDefault();
+        if (!response.ok) {
+            throw new Error('Failed to save configuration');
+        }
 
-            const exchange = document.getElementById('futures-exchange').value;
-            const apiKey = document.getElementById('futures-api-key').value;
-            const apiSecret = document.getElementById('futures-api-secret').value;
-            const tradeAmount = document.getElementById('futures-trade-amount').value;
-            const tradePair = document.getElementById('futures-trade-pair').value;
-            const leverage = document.getElementById('leverage').value;
-            const timeFrame = document.getElementById('futures-time-frame').value;
-            const botStatus = document.getElementById('futures-bot-status').checked;
+        alert('Configuration saved successfully!');
+        closeSpotBotConfigForm();
+    } catch (error) {
+        console.error('Failed to save bot configuration:', error);
+        alert('Error saving bot configuration. Please try again.');
+    }
+});
 
-            const futuresBotConfig = {
-                exchange,
-                apiKey,
-                apiSecret,
-                tradeAmount,
-                tradePair,
-                leverage,
-                timeFrame,
-                botStatus
-            };
-
-            console.log('Futures Bot Configuration:', futuresBotConfig);
-            closeFuturesBotConfigForm();
-
-        });
- // Function to update the profit charts
+      
+ // 
         function updateCharts() {
             // Short forms of the days of the week
             const daysOfWeekShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
