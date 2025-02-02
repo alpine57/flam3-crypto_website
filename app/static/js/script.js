@@ -1,4 +1,4 @@
-// Object to store toggle statuses (client-side)
+// Object to store bot configurations (client-side)
 const botConfigs = {};
 
 // Function to show a section and hide others
@@ -33,15 +33,19 @@ document.getElementById('settings-link').addEventListener('click', function (eve
 // Function to open the configuration form for a specific bot
 function showSpotBotConfigForm(botName, botId) {
     // Load the bot's saved configuration or use default values
-    const config = botConfigs[botId] || {
-        exchange: 'binance',
-        apiKey: '',
-        apiSecret: '',
-        tradeAmount: '',
-        tradePair: '',
-        timeFrame: '1m',
-        botStatus: false, // Default off
-    };
+    if (!botConfigs[botId]) {
+        botConfigs[botId] = {
+            exchange: 'binance',
+            apiKey: '',
+            apiSecret: '',
+            tradeAmount: '',
+            tradePair: '',
+            timeFrame: '1m',
+            botStatus: false, // Default off
+        };
+    }
+
+    const config = botConfigs[botId];
 
     document.getElementById('spot-bot-config-header').innerText = `${botName} Configuration`;
 
@@ -52,7 +56,7 @@ function showSpotBotConfigForm(botName, botId) {
     document.getElementById('spot-trade-amount').value = config.tradeAmount;
     document.getElementById('spot-trade-pair').value = config.tradePair;
     document.getElementById('spot-time-frame').value = config.timeFrame;
-    document.getElementById('spot-bot-status').checked = config.botStatus;
+    document.getElementById('spot-bot-status').checked = config.botStatus; // Ensure correct toggle state
 
     document.getElementById('spot-bot-config-container').style.display = 'block';
 
@@ -72,19 +76,17 @@ document.getElementById('spot-bot-config-form').addEventListener('submit', async
     const botId = event.target.dataset.botId;
 
     // Save the form data into the botConfigs object
-    const config = {
+    botConfigs[botId] = {
         exchange: document.getElementById('futures-exchange').value,
         apiKey: document.getElementById('spot-api-key').value,
         apiSecret: document.getElementById('spot-api-secret').value,
         tradeAmount: document.getElementById('spot-trade-amount').value,
         tradePair: document.getElementById('spot-trade-pair').value,
         timeFrame: document.getElementById('spot-time-frame').value,
-        botStatus: document.getElementById('spot-bot-status').checked, // Save toggle state locally
+        botStatus: document.getElementById('spot-bot-status').checked, // Preserve toggle state
     };
 
-    botConfigs[botId] = config;
-
-    console.log(`Saved configuration for ${botId} (local state):`, config);
+    console.log(`Saved configuration for ${botId} (local state):`, botConfigs[botId]);
 
     // Send the configuration to the backend
     try {
@@ -95,7 +97,7 @@ document.getElementById('spot-bot-config-form').addEventListener('submit', async
             },
             body: JSON.stringify({
                 botId,
-                ...config,
+                ...botConfigs[botId], // Send the entire config
             }),
         });
 
@@ -122,9 +124,9 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach((
         const botStatus = this.checked;
 
         if (!botConfigs[botId]) {
-            botConfigs[botId] = { botStatus }; // Initialize with default values if not present
+            botConfigs[botId] = { botStatus }; // Initialize if not present
         } else {
-            botConfigs[botId].botStatus = botStatus; // Update the bot's status in local state
+            botConfigs[botId].botStatus = botStatus; // Update status in local state
         }
 
         console.log(`Bot ${botId} status updated (local):`, botStatus);
