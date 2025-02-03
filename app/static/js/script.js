@@ -31,6 +31,12 @@ document.getElementById('settings-link')?.addEventListener('click', (event) => {
 
 // Function to open the Spot bot configuration form
 function showSpotBotConfigForm(botName, botId) {
+    const formContainer = document.getElementById('spot-bot-config-container');
+    if (!formContainer) {
+        console.error('Spot bot form container not found.');
+        return;
+    }
+
     const config = botConfigs[botId] || {
         exchange: 'binance',
         apiKey: '',
@@ -52,12 +58,18 @@ function showSpotBotConfigForm(botName, botId) {
     document.getElementById('spot-time-frame').value = config.timeFrame;
     document.getElementById('spot-bot-status').checked = config.botStatus;
 
-    document.getElementById('spot-bot-config-container').style.display = 'block';
+    formContainer.style.display = 'block';
     document.getElementById('spot-bot-config-form').dataset.botId = botId;
 }
 
 // Function to open the Futures bot configuration form
 function showFuturesBotConfigForm(botName, botId) {
+    const formContainer = document.getElementById('futures-bot-config-container');
+    if (!formContainer) {
+        console.error('Futures bot form container not found.');
+        return;
+    }
+
     const config = botConfigs[botId] || {
         exchange: 'binance',
         apiKey: '',
@@ -81,14 +93,14 @@ function showFuturesBotConfigForm(botName, botId) {
     document.getElementById('futures-time-frame').value = config.timeFrame;
     document.getElementById('futures-bot-status').checked = config.botStatus;
 
-    document.getElementById('futures-bot-config-container').style.display = 'block';
+    formContainer.style.display = 'block';
     document.getElementById('futures-bot-config-form').dataset.botId = botId;
 }
 
 // Function to close bot configuration forms
 function closeBotConfigForm() {
-    document.getElementById('spot-bot-config-container').style.display = 'none';
-    document.getElementById('futures-bot-config-container').style.display = 'none';
+    document.getElementById('spot-bot-config-container')?.style.display = 'none';
+    document.getElementById('futures-bot-config-container')?.style.display = 'none';
 }
 
 // Event listener for Spot Bot form submission
