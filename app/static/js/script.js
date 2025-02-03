@@ -189,4 +189,3 @@ document.addEventListener('change', function (event) {
         console.log(`Bot ${botId} status updated (local):`, botStatus);
     }
 });
-
