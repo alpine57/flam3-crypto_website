@@ -1,4 +1,4 @@
-// Object to store toggle statuses (client-side)
+// Object to store bot configurations (client-side)
 const botConfigs = {};
 
 // Function to show a section and hide others
@@ -29,7 +29,7 @@ document.getElementById('settings-link')?.addEventListener('click', (event) => {
     showSection('settings-section');
 });
 
-// Function to open the configuration form for a specific bot
+// Function to open the Spot Bot Configuration form
 function showSpotBotConfigForm(botName, botId) {
     const config = botConfigs[botId] || {
         exchange: 'binance',
@@ -38,12 +38,12 @@ function showSpotBotConfigForm(botName, botId) {
         tradeAmount: '',
         tradePair: '',
         timeFrame: '1m',
-        botStatus: false, // Default off
+        botStatus: false,
     };
 
     document.getElementById('spot-bot-config-header').innerText = `${botName} Configuration`;
 
-    // Populate the form with the bot's specific configuration
+    // Populate form fields with bot's settings
     document.getElementById('spot-exchange').value = config.exchange;
     document.getElementById('spot-api-key').value = config.apiKey;
     document.getElementById('spot-api-secret').value = config.apiSecret;
@@ -56,12 +56,44 @@ function showSpotBotConfigForm(botName, botId) {
     document.getElementById('spot-bot-config-form').dataset.botId = botId;
 }
 
-// Function to close the configuration form
+// Function to open the Futures Bot Configuration form
+function showFuturesBotConfigForm(botName, botId) {
+    const config = botConfigs[botId] || {
+        exchange: 'binance',
+        apiKey: '',
+        apiSecret: '',
+        tradeAmount: '',
+        tradePair: '',
+        timeFrame: '1m',
+        botStatus: false,
+    };
+
+    document.getElementById('futures-bot-config-header').innerText = `${botName} Configuration`;
+
+    // Populate form fields with bot's settings
+    document.getElementById('futures-exchange').value = config.exchange;
+    document.getElementById('futures-api-key').value = config.apiKey;
+    document.getElementById('futures-api-secret').value = config.apiSecret;
+    document.getElementById('futures-trade-amount').value = config.tradeAmount;
+    document.getElementById('futures-trade-pair').value = config.tradePair;
+    document.getElementById('futures-time-frame').value = config.timeFrame;
+    document.getElementById('futures-bot-status').checked = config.botStatus;
+
+    document.getElementById('futures-bot-config-container').style.display = 'block';
+    document.getElementById('futures-bot-config-form').dataset.botId = botId;
+}
+
+// Function to close the Spot Bot Configuration form
 function closeSpotBotConfigForm() {
     document.getElementById('spot-bot-config-container').style.display = 'none';
 }
 
-// Ensure the form exists before adding an event listener
+// Function to close the Futures Bot Configuration form
+function closeFuturesBotConfigForm() {
+    document.getElementById('futures-bot-config-container').style.display = 'none';
+}
+
+// Spot Bot Form Submit Handler
 document.getElementById('spot-bot-config-form')?.addEventListener('submit', async function (event) {
     event.preventDefault();
     const botId = event.target.dataset.botId;
@@ -86,7 +118,6 @@ document.getElementById('spot-bot-config-form')?.addEventListener('submit', asyn
             body: JSON.stringify({ botId, ...config }),
         });
         const result = await response.json();
-        console.log('Server Response:', result);
         alert(result.success ? `Configuration for ${botId} saved successfully!` : `Failed to save configuration for ${botId}.`);
     } catch (error) {
         console.error('Error:', error);
@@ -96,7 +127,41 @@ document.getElementById('spot-bot-config-form')?.addEventListener('submit', asyn
     closeSpotBotConfigForm();
 });
 
-// Event delegation for dynamically added checkboxes
+// Futures Bot Form Submit Handler
+document.getElementById('futures-bot-config-form')?.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const botId = event.target.dataset.botId;
+
+    const config = {
+        exchange: document.getElementById('futures-exchange').value,
+        apiKey: document.getElementById('futures-api-key').value,
+        apiSecret: document.getElementById('futures-api-secret').value,
+        tradeAmount: document.getElementById('futures-trade-amount').value,
+        tradePair: document.getElementById('futures-trade-pair').value,
+        timeFrame: document.getElementById('futures-time-frame').value,
+        botStatus: document.getElementById('futures-bot-status').checked,
+    };
+
+    botConfigs[botId] = config;
+    console.log(`Saved configuration for ${botId} (local state):`, config);
+
+    try {
+        const response = await fetch('/api/bot/futures/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ botId, ...config }),
+        });
+        const result = await response.json();
+        alert(result.success ? `Configuration for ${botId} saved successfully!` : `Failed to save configuration for ${botId}.`);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while saving the configuration.');
+    }
+
+    closeFuturesBotConfigForm();
+});
+
+// Event delegation for toggle switches (client-side only)
 document.addEventListener('change', function (event) {
     if (event.target.matches('input[type="checkbox"][name="bot-status"]')) {
         const checkbox = event.target;
