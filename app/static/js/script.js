@@ -1,5 +1,34 @@
 // Object to store bot configurations (client-side)
 const botConfigs = {};
+// Function to show a section and hide others
+function showSection(sectionId) {
+    const sections = document.querySelectorAll('.content');
+    sections.forEach((section) => {
+        section.style.display = section.id === sectionId ? 'flex' : 'none';
+    });
+}
+
+// Event listeners for navigation links
+document.getElementById('home-link').addEventListener('click', function (event) {
+    event.preventDefault();
+    showSection('home-section');
+});
+
+document.getElementById('spot-link').addEventListener('click', function (event) {
+    event.preventDefault();
+    showSection('spot-section');
+});
+
+document.getElementById('futures-link').addEventListener('click', function (event) {
+    event.preventDefault();
+    showSection('futures-section');
+});
+
+document.getElementById('settings-link').addEventListener('click', function (event) {
+    event.preventDefault();
+    showSection('settings-section');
+});
+
 
 // Function to open the configuration form for a specific bot
 function showSpotBotConfigForm(botName, botId) {
