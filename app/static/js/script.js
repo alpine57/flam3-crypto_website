@@ -86,13 +86,13 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
         console.log('Server Response:', result);
 
         if (result.success) {
-            alert(${botName} configuration updated and restarted successfully!);
+            alert(`${botName} configuration updated and restarted successfully!`);
         } else {
-            alert(Failed to update the configuration for ${botName}.);
+            alert(`Failed to update the configuration for ${botName}.`);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert(An error occurred while updating the configuration for ${botName}.);
+        alert(`An error occurred while updating the configuration for ${botName}.`);
     }
 
     closeFuturesBotConfigForm();
@@ -139,13 +139,13 @@ document.getElementById('spot-bot-config-form').addEventListener('submit', async
         console.log('Server Response:', result);
 
         if (result.success) {
-            alert(${botName} configuration updated and restarted successfully!);
+            alert(`${botName} configuration updated and restarted successfully!`);
         } else {
-            alert(Failed to update the configuration for ${botName}.);
+            alert(`Failed to update the configuration for ${botName}.`);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert(An error occurred while updating the configuration for ${botName}.);
+        alert(`An error occurred while updating the configuration for ${botName}.`);
     }
 
     closeSpotBotConfigForm();
@@ -163,7 +163,7 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
     });
 
     try {
-        const response = await fetch(/api/bot/toggle, {
+        const response = await fetch(`/api/bot/toggle`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -176,36 +176,3 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
                 status,
             }),
         });
-
-        const result = await response.json();
-        console.log(${botId} (${botName}, ${botType}) Status Updated:, result);
-
-        if (result.success) {
-            alert(${botName.replace('_', ' ')} on ${exchange} (${botType}) is now ${status ? 'ON' : 'OFF'});
-        } else {
-            alert(Failed to update ${botName.replace('_', ' ')} on ${exchange} (${botType}) status.);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert(An error occurred while updating the ${botName.replace('_', ' ')} status.);
-    }
-}
-
-// Add event listeners dynamically for all bot toggle checkboxes
-document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach((checkbox) => {
-    checkbox.addEventListener('change', function () {
-        const botStatus = this.checked;
-        const form = this.closest('form'); // Get the parent form to extract other data
-        
-        // Find the closest bot container (div) to get the botId and botName
-        const botContainer = form.closest('.bot-container'); 
-        const botId = botContainer.getAttribute('data-bot-id'); // Get the botId from the div's data attribute
-        const botName = botContainer.innerText.trim(); // Get the botName from the inner text of the div
-        const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures'; // Determine botType from section
-
-        // Get the exchange selected in the form
-        const exchange = form.querySelector('select[name="exchange"]').value;
-
-        handleBotStatusChange(botId, botName, botType, exchange, botStatus);
-    });
-});
