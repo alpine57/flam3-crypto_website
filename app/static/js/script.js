@@ -1,109 +1,115 @@
-// Object to store bot configurations (client-side)
+// Object to store toggle statuses (client-side)
 const botConfigs = {};
+
 // Function to show a section and hide others
 function showSection(sectionId) {
-    const sections = document.querySelectorAll('.content');
-    sections.forEach((section) => {
+    document.querySelectorAll('.content').forEach(section => {
         section.style.display = section.id === sectionId ? 'flex' : 'none';
     });
 }
 
-// Event listeners for navigation links
-document.getElementById('home-link').addEventListener('click', function (event) {
+// Ensure navigation links exist before adding event listeners
+document.getElementById('home-link')?.addEventListener('click', (event) => {
     event.preventDefault();
     showSection('home-section');
 });
 
-document.getElementById('spot-link').addEventListener('click', function (event) {
+document.getElementById('spot-link')?.addEventListener('click', (event) => {
     event.preventDefault();
     showSection('spot-section');
 });
 
-document.getElementById('futures-link').addEventListener('click', function (event) {
+document.getElementById('futures-link')?.addEventListener('click', (event) => {
     event.preventDefault();
     showSection('futures-section');
 });
 
-document.getElementById('settings-link').addEventListener('click', function (event) {
+document.getElementById('settings-link')?.addEventListener('click', (event) => {
     event.preventDefault();
     showSection('settings-section');
 });
 
-
 // Function to open the configuration form for a specific bot
 function showSpotBotConfigForm(botName, botId) {
-    // Ensure bot configuration exists
-    if (!botConfigs[botId]) {
-        botConfigs[botId] = {
-            exchange: 'binance',
-            apiKey: '',
-            apiSecret: '',
-            tradeAmount: '',
-            tradePair: '',
-            timeFrame: '1m',
-            botStatus: false, // Default off
-        };
-    }
+    const config = botConfigs[botId] || {
+        exchange: 'binance',
+        apiKey: '',
+        apiSecret: '',
+        tradeAmount: '',
+        tradePair: '',
+        timeFrame: '1m',
+        botStatus: false, // Default off
+    };
 
-    const config = botConfigs[botId];
-
-    // Populate the form with stored config values
     document.getElementById('spot-bot-config-header').innerText = `${botName} Configuration`;
-    document.getElementById('futures-exchange').value = config.exchange;
+
+    // Populate the form with the bot's specific configuration
+    document.getElementById('spot-exchange').value = config.exchange;
     document.getElementById('spot-api-key').value = config.apiKey;
     document.getElementById('spot-api-secret').value = config.apiSecret;
     document.getElementById('spot-trade-amount').value = config.tradeAmount;
     document.getElementById('spot-trade-pair').value = config.tradePair;
     document.getElementById('spot-time-frame').value = config.timeFrame;
-    
-    // ✅ Set the toggle state correctly from the saved config
     document.getElementById('spot-bot-status').checked = config.botStatus;
 
     document.getElementById('spot-bot-config-container').style.display = 'block';
-
-    // Save the botId in the form dataset for future reference
     document.getElementById('spot-bot-config-form').dataset.botId = botId;
 }
 
-// Function to close the configuration form (but keep toggle state saved)
+// Function to close the configuration form
 function closeSpotBotConfigForm() {
-    const botId = document.getElementById('spot-bot-config-form').dataset.botId;
-
-    if (botId) {
-        // ✅ Save all form values (including the toggle status)
-        botConfigs[botId] = {
-            exchange: document.getElementById('futures-exchange').value,
-            apiKey: document.getElementById('spot-api-key').value,
-            apiSecret: document.getElementById('spot-api-secret').value,
-            tradeAmount: document.getElementById('spot-trade-amount').value,
-            tradePair: document.getElementById('spot-trade-pair').value,
-            timeFrame: document.getElementById('spot-time-frame').value,
-            botStatus: document.getElementById('spot-bot-status').checked, // ✅ Keep toggle state
-        };
-    }
-
     document.getElementById('spot-bot-config-container').style.display = 'none';
 }
 
-// Submit handler for the Spot Bot Configuration form
-document.getElementById('spot-bot-config-form').addEventListener('submit', function (event) {
+// Ensure the form exists before adding an event listener
+document.getElementById('spot-bot-config-form')?.addEventListener('submit', async function (event) {
     event.preventDefault();
-
     const botId = event.target.dataset.botId;
 
-    // ✅ Save the latest values, including the toggle state
-    botConfigs[botId] = {
-        exchange: document.getElementById('futures-exchange').value,
+    const config = {
+        exchange: document.getElementById('spot-exchange').value,
         apiKey: document.getElementById('spot-api-key').value,
         apiSecret: document.getElementById('spot-api-secret').value,
         tradeAmount: document.getElementById('spot-trade-amount').value,
         tradePair: document.getElementById('spot-trade-pair').value,
         timeFrame: document.getElementById('spot-time-frame').value,
-        botStatus: document.getElementById('spot-bot-status').checked, // ✅ Ensuring persistence
+        botStatus: document.getElementById('spot-bot-status').checked,
     };
 
-    console.log(`Saved configuration for ${botId}:`, botConfigs[botId]);
+    botConfigs[botId] = config;
+    console.log(`Saved configuration for ${botId} (local state):`, config);
+
+    try {
+        const response = await fetch('/api/bot/spot/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ botId, ...config }),
+        });
+        const result = await response.json();
+        console.log('Server Response:', result);
+        alert(result.success ? `Configuration for ${botId} saved successfully!` : `Failed to save configuration for ${botId}.`);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while saving the configuration.');
+    }
 
     closeSpotBotConfigForm();
+});
+
+// Event delegation for dynamically added checkboxes
+document.addEventListener('change', function (event) {
+    if (event.target.matches('input[type="checkbox"][name="bot-status"]')) {
+        const checkbox = event.target;
+        const botId = checkbox.dataset.botId;
+        const botStatus = checkbox.checked;
+
+        if (!botConfigs[botId]) {
+            botConfigs[botId] = { botStatus };
+        } else {
+            botConfigs[botId].botStatus = botStatus;
+        }
+
+        console.log(`Bot ${botId} status updated (local):`, botStatus);
+    }
 });
 
