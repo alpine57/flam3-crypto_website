@@ -1,108 +1,171 @@
-// Object to store bot configurations (client-side)
-const botConfigs = {};
-// Function to show a section and hide others
+// Function to show a section based on sectionId
 function showSection(sectionId) {
     const sections = document.querySelectorAll('.content');
-    sections.forEach((section) => {
+    sections.forEach(section => {
         section.style.display = section.id === sectionId ? 'flex' : 'none';
     });
 }
 
-// Event listeners for navigation links
-document.getElementById('home-link').addEventListener('click', function (event) {
+// Event Listeners for Navigation Links
+document.getElementById('home-link').addEventListener('click', event => {
     event.preventDefault();
     showSection('home-section');
 });
 
-document.getElementById('spot-link').addEventListener('click', function (event) {
+document.getElementById('spot-link').addEventListener('click', event => {
     event.preventDefault();
     showSection('spot-section');
 });
 
-document.getElementById('futures-link').addEventListener('click', function (event) {
+document.getElementById('futures-link').addEventListener('click', event => {
     event.preventDefault();
     showSection('futures-section');
 });
 
-document.getElementById('settings-link').addEventListener('click', function (event) {
+document.getElementById('settings-link').addEventListener('click', event => {
     event.preventDefault();
     showSection('settings-section');
 });
 
-
-// Function to open the configuration form for a specific bot
-function showSpotBotConfigForm(botName, botId) {
-    // Ensure bot configuration exists
-    if (!botConfigs[botId]) {
-        botConfigs[botId] = {
-            exchange: 'binance',
-            apiKey: '',
-            apiSecret: '',
-            tradeAmount: '',
-            tradePair: '',
-            timeFrame: '1m',
-            botStatus: false, // Default off
-        };
-    }
-
-    const config = botConfigs[botId];
-
-    // Populate the form with stored config values
-    document.getElementById('spot-bot-config-header').innerText = `${botName} Configuration`;
-    document.getElementById('futures-exchange').value = config.exchange;
-    document.getElementById('spot-api-key').value = config.apiKey;
-    document.getElementById('spot-api-secret').value = config.apiSecret;
-    document.getElementById('spot-trade-amount').value = config.tradeAmount;
-    document.getElementById('spot-trade-pair').value = config.tradePair;
-    document.getElementById('spot-time-frame').value = config.timeFrame;
-    
-    // ? Set the toggle state correctly from the saved config
-    document.getElementById('spot-bot-status').checked = config.botStatus;
-
-    document.getElementById('spot-bot-config-container').style.display = 'block';
-
-    // Save the botId in the form dataset for future reference
-    document.getElementById('spot-bot-config-form').dataset.botId = botId;
+// Spot Bot Configuration Functions
+function showSpotBotConfigForm(botName) {
+    const configHeader = document.getElementById('spot-bot-config-header');
+    const configContainer = document.getElementById('spot-bot-config-container');
+    configHeader.innerText = `${botName} Configuration`;
+    configContainer.style.display = 'block';
 }
 
-// Function to close the configuration form (but keep toggle state saved)
 function closeSpotBotConfigForm() {
-    const botId = document.getElementById('spot-bot-config-form').dataset.botId;
-
-    if (botId) {
-        // ? Save all form values (including the toggle status)
-        botConfigs[botId] = {
-            exchange: document.getElementById('futures-exchange').value,
-            apiKey: document.getElementById('spot-api-key').value,
-            apiSecret: document.getElementById('spot-api-secret').value,
-            tradeAmount: document.getElementById('spot-trade-amount').value,
-            tradePair: document.getElementById('spot-trade-pair').value,
-            timeFrame: document.getElementById('spot-time-frame').value,
-            botStatus: document.getElementById('spot-bot-status').checked, // ? Keep toggle state
-        };
-    }
-
     document.getElementById('spot-bot-config-container').style.display = 'none';
 }
 
-// Submit handler for the Spot Bot Configuration form
-document.getElementById('spot-bot-config-form').addEventListener('submit', function (event) {
+// Futures Bot Configuration Functions
+function showFuturesBotConfigForm(botName) {
+    const configHeader = document.getElementById('futures-bot-config-header');
+    const configContainer = document.getElementById('futures-bot-config-container');
+    configHeader.innerText = `${botName} Configuration`;
+    configContainer.style.display = 'block';
+}
+
+function closeFuturesBotConfigForm() {
+    document.getElementById('futures-bot-config-container').style.display = 'none';
+}
+
+// Spot Bot Form Submission
+document.getElementById('spot-bot-config-form').addEventListener('submit', async event => {
     event.preventDefault();
 
-    const botId = event.target.dataset.botId;
+    const botName = document.getElementById('spot-bot-config-header').innerText.replace(' Configuration', '');
+    const exchange = document.getElementById('spot-exchange').value;
+    const apiKey = document.getElementById('spot-api-key').value;
+    const apiSecret = document.getElementById('spot-api-secret').value;
+    const tradeAmount = document.getElementById('spot-trade-amount').value;
+    const tradePair = document.getElementById('spot-trade-pair').value;
+    const timeFrame = document.getElementById('spot-time-frame').value;
 
-    // ? Save the latest values, including the toggle state
-    botConfigs[botId] = {
-        exchange: document.getElementById('futures-exchange').value,
-        apiKey: document.getElementById('spot-api-key').value,
-        apiSecret: document.getElementById('spot-api-secret').value,
-        tradeAmount: document.getElementById('spot-trade-amount').value,
-        tradePair: document.getElementById('spot-trade-pair').value,
-        timeFrame: document.getElementById('spot-time-frame').value,
-        botStatus: document.getElementById('spot-bot-status').checked, // ? Ensuring persistence
+    const spotBotConfig = {
+        botName,
+        exchange,
+        apiKey,
+        apiSecret,
+        tradeAmount,
+        tradePair,
+        timeFrame,
     };
 
-    console.log(`Saved configuration for ${botId}:`, botConfigs[botId]);
+    try {
+        const response = await fetch('/api/bot/spot/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(spotBotConfig),
+        });
+
+        const result = await response.json();
+        alert(result.success
+            ? `${botName} configuration updated successfully!`
+            : `Failed to update ${botName} configuration.`);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while updating the configuration.');
+    }
 
     closeSpotBotConfigForm();
 });
+
+// Futures Bot Form Submission
+document.getElementById('futures-bot-config-form').addEventListener('submit', async event => {
+    event.preventDefault();
+
+    const botName = document.getElementById('futures-bot-config-header').innerText.replace(' Configuration', '');
+    const exchange = document.getElementById('futures-exchange').value;
+    const apiKey = document.getElementById('futures-api-key').value;
+    const apiSecret = document.getElementById('futures-api-secret').value;
+    const tradeAmount = document.getElementById('futures-trade-amount').value;
+    const tradePair = document.getElementById('futures-trade-pair').value;
+    const leverage = document.getElementById('leverage').value;
+    const timeFrame = document.getElementById('futures-time-frame').value;
+
+    const futuresBotConfig = {
+        botName,
+        exchange,
+        apiKey,
+        apiSecret,
+        tradeAmount,
+        tradePair,
+        leverage,
+        timeFrame,
+    };
+
+    try {
+        const response = await fetch('/api/bot/futures/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(futuresBotConfig),
+        });
+
+        const result = await response.json();
+        alert(result.success
+            ? `${botName} configuration updated successfully!`
+            : `Failed to update ${botName} configuration.`);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while updating the configuration.');
+    }
+
+    closeFuturesBotConfigForm();
+});
+
+// Handle Bot Status Change
+async function handleBotStatusChange(botId, botName, botType, exchange, status) {
+    try {
+        const response = await fetch('/api/bot/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bot_id: botId, bot_name: botName, bot_type: botType, exchange, status }),
+        });
+
+        const result = await response.json();
+        alert(result.success
+            ? `${botName} (${exchange}, ${botType}) is now ${status ? 'ON' : 'OFF'}`
+            : `Failed to update ${botName} status.`);
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while updating the bot status.');
+    }
+}
+
+// Add Event Listeners for Bot Toggles
+document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(checkbox => {
+    checkbox.addEventListener('change', function () {
+        const botStatus = this.checked;
+        const form = this.closest('form');
+        const botContainer = form.closest('.bot-container');
+        const botId = botContainer.getAttribute('data-bot-id');
+        const botName = botContainer.querySelector('.bot-name').innerText;
+        const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures';
+        const exchange = form.querySelector('select[name="exchange"]').value;
+
+        handleBotStatusChange(botId, botName, botType, exchange, botStatus);
+    });
+});
+
