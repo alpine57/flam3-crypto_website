@@ -136,7 +136,7 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
 });
 
 
-// Handle Bot Status Change
+// Function to update bot status and save in localStorage
 async function handleBotStatusChange(botId, botName, botType, exchange, status) {
     try {
         const response = await fetch('/api/bot/toggle', {
@@ -146,30 +146,36 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
         });
 
         const result = await response.json();
-        alert(result.success
-            ? `${botName} (${exchange}, ${botType}) is now ${status ? 'ON' : 'OFF'}`
-            : `Failed to update ${botName} status.`);
+
+        if (result.success) {
+            alert(`${botName} (${exchange}, ${botType}) is now ${status ? 'ON' : 'OFF'}`);
+            
+            // Save status in localStorage
+            localStorage.setItem(`botStatus-${botId}`, status ? 'on' : 'off');
+        } else {
+            alert(`Failed to update ${botName} status.`);
+        }
     } catch (error) {
         console.error('Error:', error);
         alert('An error occurred while updating the bot status.');
     }
 }
 
-// Load Bot Status from Local Storage
-function loadBotStatuses() {
-    document.querySelectorAll('.bot-container').forEach(botContainer => {
+// Function to restore toggle states from localStorage
+function restoreBotToggleStates() {
+    document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(checkbox => {
+        const botContainer = checkbox.closest('.bot-container');
         const botId = botContainer.getAttribute('data-bot-id');
-        const toggleSwitch = botContainer.querySelector('input[name="bot-status"]');
 
-        // Retrieve status from localStorage
-        const storedStatus = localStorage.getItem(`bot-status-${botId}`);
+        // Get stored status from localStorage
+        const storedStatus = localStorage.getItem(`botStatus-${botId}`);
         if (storedStatus !== null) {
-            toggleSwitch.checked = storedStatus === "true"; // Convert string to boolean
+            checkbox.checked = storedStatus === 'on'; // Convert 'on'/'off' string to boolean
         }
     });
 }
 
-// Add Event Listeners for Bot Toggles
+// Add event listeners for bot toggles
 document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(checkbox => {
     checkbox.addEventListener('change', function () {
         const botStatus = this.checked;
@@ -180,14 +186,14 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(c
         const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures';
         const exchange = form.querySelector('select[name="exchange"]').value;
 
-        // Store the new state in localStorage
-        localStorage.setItem(`bot-status-${botId}`, botStatus);
+        // Save the state immediately
+        localStorage.setItem(`botStatus-${botId}`, botStatus ? 'on' : 'off');
 
-        // Send update to backend asynchronously
+        // Call function to update the backend
         handleBotStatusChange(botId, botName, botType, exchange, botStatus);
     });
 });
 
-// Call this function on page load
-document.addEventListener('DOMContentLoaded', loadBotStatuses);
+// Restore toggle states when the page loads
+document.addEventListener('DOMContentLoaded', restoreBotToggleStates);
 
