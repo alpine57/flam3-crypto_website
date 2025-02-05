@@ -136,22 +136,28 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
 });
 
 // Restore toggle states when the page loads
+// Restore toggle states when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(checkbox => {
         const botContainer = checkbox.closest('.bot-container');
         if (!botContainer) return;
 
         const botId = botContainer.getAttribute('data-bot-id');
-        const botType = botContainer.closest('#futures-section') ? 'futures' : 'spot'; // Ensure correct bot type
-        const storedStatus = localStorage.getItem(`botStatus-${botId}-${botType}`);
+        const botName = botContainer.querySelector('.bot-name').innerText;
+        const botType = botContainer.closest('#futures-section') ? 'futures' : 'spot'; // Identify bot type
 
+        // Use a unique key for each bot
+        const storageKey = `botStatus-${botId}-${botType}`;
+
+        // Retrieve saved status
+        const storedStatus = localStorage.getItem(storageKey);
         if (storedStatus !== null) {
-            checkbox.checked = storedStatus === 'on';
+            checkbox.checked = storedStatus === 'on'; // Restore state
         }
     });
 });
 
-// Function to update bot status and persist in localStorage
+// Function to update bot status and persist it
 async function handleBotStatusChange(botId, botName, botType, exchange, status) {
     try {
         const response = await fetch('/api/bot/toggle', {
@@ -161,11 +167,10 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
         });
 
         const result = await response.json();
-
         if (result.success) {
             alert(`${botName} (${exchange}, ${botType}) is now ${status ? 'ON' : 'OFF'}`);
             
-            // Save status in localStorage with botType differentiation
+            // Save status in localStorage
             localStorage.setItem(`botStatus-${botId}-${botType}`, status ? 'on' : 'off');
         } else {
             alert(`Failed to update ${botName} status.`);
@@ -184,15 +189,15 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(c
 
         const botId = botContainer.getAttribute('data-bot-id');
         const botName = botContainer.querySelector('.bot-name').innerText;
-        const botType = botContainer.closest('#futures-section') ? 'futures' : 'spot'; // Correctly determine bot type
+        const botType = botContainer.closest('#futures-section') ? 'futures' : 'spot'; // Identify bot type
         const exchange = botContainer.querySelector('select[name="exchange"]').value;
         const botStatus = this.checked;
 
-        // Save the state immediately in localStorage with botType differentiation
+        // Save state in localStorage immediately
         localStorage.setItem(`botStatus-${botId}-${botType}`, botStatus ? 'on' : 'off');
 
-        // Call function to update the backend
+        // Call function to update backend
         handleBotStatusChange(botId, botName, botType, exchange, botStatus);
     });
 });
- 
+
