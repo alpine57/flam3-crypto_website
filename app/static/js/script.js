@@ -135,30 +135,10 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
     closeFuturesBotConfigForm();
 });
 
-// Restore toggle states when the page loads
-// Restore toggle states when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(checkbox => {
-        const botContainer = checkbox.closest('.bot-container');
-        if (!botContainer) return;
-
-        const botId = botContainer.getAttribute('data-bot-id');
-        const botName = botContainer.querySelector('.bot-name').innerText;
-        const botType = botContainer.closest('#futures-section') ? 'futures' : 'spot'; // Identify bot type
-
-        // Use a unique key for each bot
-        const storageKey = `botStatus-${botId}-${botType}`;
-
-        // Retrieve saved status
-        const storedStatus = localStorage.getItem(storageKey);
-        if (storedStatus !== null) {
-            checkbox.checked = storedStatus === 'on'; // Restore state
-        }
-    });
-});
-
-// Function to update bot status and persist it
+// Handle Bot Status Change Function 
 async function handleBotStatusChange(botId, botName, botType, exchange, status) {
+    console.log("Updating Bot Status:", { botId, botName, botType, exchange, status });
+
     try {
         const response = await fetch('/api/bot/toggle', {
             method: 'POST',
@@ -167,36 +147,55 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
         });
 
         const result = await response.json();
+
         if (result.success) {
-            alert(`${botName} (${exchange}, ${botType}) is now ${status ? 'ON' : 'OFF'}`);
-            
-            // Save status in localStorage
-            localStorage.setItem(`botStatus-${botId}-${botType}`, status ? 'on' : 'off');
+            alert(`${botName.replace('_', ' ')} (${exchange}, ${botType}) is now ${status ? 'ON' : 'OFF'}`);
         } else {
-            alert(`Failed to update ${botName} status.`);
+            alert(`Failed to update ${botName.replace('_', ' ')} status.`);
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while updating the bot status.');
+        console.error('Error while updating bot status:', error);
+        alert(`An error occurred while updating the status for ${botName.replace('_', ' ')}`);
     }
 }
 
-// Add event listeners for bot toggles
+// Add Event Listeners to All Toggle Switches
 document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(checkbox => {
     checkbox.addEventListener('change', function () {
-        const botContainer = this.closest('.bot-container');
-        if (!botContainer) return;
-
-        const botId = botContainer.getAttribute('data-bot-id');
-        const botName = botContainer.querySelector('.bot-name').innerText;
-        const botType = botContainer.closest('#futures-section') ? 'futures' : 'spot'; // Identify bot type
-        const exchange = botContainer.querySelector('select[name="exchange"]').value;
         const botStatus = this.checked;
 
-        // Save state in localStorage immediately
-        localStorage.setItem(`botStatus-${botId}-${botType}`, botStatus ? 'on' : 'off');
+        // Find the closest bot container
+        const botContainer = this.closest('.bot-container');
+        if (!botContainer) {
+            console.error("Error: Bot container not found!");
+            return;
+        }
 
-        // Call function to update backend
+        // Extract bot details
+        const botId = botContainer.getAttribute('data-bot-id');
+        const botNameElement = botContainer.querySelector('.bot-name');
+        const botName = botNameElement ? botNameElement.innerText.trim() : "Unknown Bot";
+
+        // Determine if it's a spot or futures bot
+        const isSpotBot = botContainer.closest('#spot-section') !== null;
+        const isFuturesBot = botContainer.closest('#futures-section') !== null;
+        const botType = isSpotBot ? 'spot' : isFuturesBot ? 'futures' : 'unknown';
+
+        // Extract exchange value from the associated form or dropdown
+        const form = botContainer.closest('form');
+        if (!form) {
+            console.error("Error: Form not found for bot:", botName);
+            return;
+        }
+        const exchangeSelect = form.querySelector('select[name="exchange"]');
+        const exchange = exchangeSelect ? exchangeSelect.value : "unknown";
+
+        // Debugging Output (Remove in Production)
+        console.log({
+            botId, botName, botType, exchange, botStatus
+        });
+
+        // Update the bot status
         handleBotStatusChange(botId, botName, botType, exchange, botStatus);
     });
 });
