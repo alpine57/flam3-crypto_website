@@ -135,6 +135,7 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
     closeFuturesBotConfigForm();
 });
 
+
 // Handle Bot Status Change
 async function handleBotStatusChange(botId, botName, botType, exchange, status) {
     try {
@@ -154,6 +155,20 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
     }
 }
 
+// Load Bot Status from Local Storage
+function loadBotStatuses() {
+    document.querySelectorAll('.bot-container').forEach(botContainer => {
+        const botId = botContainer.getAttribute('data-bot-id');
+        const toggleSwitch = botContainer.querySelector('input[name="bot-status"]');
+
+        // Retrieve status from localStorage
+        const storedStatus = localStorage.getItem(`bot-status-${botId}`);
+        if (storedStatus !== null) {
+            toggleSwitch.checked = storedStatus === "true"; // Convert string to boolean
+        }
+    });
+}
+
 // Add Event Listeners for Bot Toggles
 document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(checkbox => {
     checkbox.addEventListener('change', function () {
@@ -165,7 +180,14 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(c
         const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures';
         const exchange = form.querySelector('select[name="exchange"]').value;
 
+        // Store the new state in localStorage
+        localStorage.setItem(`bot-status-${botId}`, botStatus);
+
+        // Send update to backend asynchronously
         handleBotStatusChange(botId, botName, botType, exchange, botStatus);
     });
 });
+
+// Call this function on page load
+document.addEventListener('DOMContentLoaded', loadBotStatuses);
 
