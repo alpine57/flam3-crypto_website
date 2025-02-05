@@ -164,7 +164,7 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(c
     checkbox.addEventListener('change', function () {
         const botStatus = this.checked;
 
-        // Find the closest bot container
+        // Find the closest bot container (specific to THIS bot)
         const botContainer = this.closest('.bot-container');
         if (!botContainer) {
             console.error("Error: Bot container not found!");
@@ -176,10 +176,8 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(c
         const botNameElement = botContainer.querySelector('.bot-name');
         const botName = botNameElement ? botNameElement.innerText.trim() : "Unknown Bot";
 
-        // Determine if it's a spot or futures bot
-        const isSpotBot = botContainer.closest('#spot-section') !== null;
-        const isFuturesBot = botContainer.closest('#futures-section') !== null;
-        const botType = isSpotBot ? 'spot' : isFuturesBot ? 'futures' : 'unknown';
+        // Ensure bot type is correctly assigned
+        const parentSection = botContainer.closest('#spot-section') ? 'spot' : botContainer.closest('#futures-section') ? 'futures' : 'unknown';
 
         // Extract exchange value from the associated form or dropdown
         const form = botContainer.closest('form');
@@ -192,11 +190,11 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(c
 
         // Debugging Output (Remove in Production)
         console.log({
-            botId, botName, botType, exchange, botStatus
+            botId, botName, botType: parentSection, exchange, botStatus
         });
 
-        // Update the bot status
-        handleBotStatusChange(botId, botName, botType, exchange, botStatus);
+        // Update only the specific bot that was toggled
+        handleBotStatusChange(botId, botName, parentSection, exchange, botStatus);
     });
 });
 
