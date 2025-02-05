@@ -140,10 +140,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(checkbox => {
         const botContainer = checkbox.closest('.bot-container');
         if (!botContainer) return;
-
         const botId = botContainer.getAttribute('data-bot-id');
-        const storedStatus = localStorage.getItem(`botStatus-${botId}`);
-
+        const botType = botContainer.closest('#futures-section') ? 'futures' : 'spot';
+        const storedStatus = localStorage.getItem(`botStatus-${botId}-${botType}`);
         if (storedStatus !== null) {
             checkbox.checked = storedStatus === 'on';
         }
@@ -158,14 +157,10 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bot_id: botId, bot_name: botName, bot_type: botType, exchange, status }),
         });
-
         const result = await response.json();
-
         if (result.success) {
             alert(`${botName} (${exchange}, ${botType}) is now ${status ? 'ON' : 'OFF'}`);
-            
-            // Save status in localStorage
-            localStorage.setItem(`botStatus-${botId}`, status ? 'on' : 'off');
+            localStorage.setItem(`botStatus-${botId}-${botType}`, status ? 'on' : 'off');
         } else {
             alert(`Failed to update ${botName} status.`);
         }
@@ -180,18 +175,13 @@ document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(c
     checkbox.addEventListener('change', function () {
         const botContainer = this.closest('.bot-container');
         if (!botContainer) return;
-
         const botId = botContainer.getAttribute('data-bot-id');
         const botName = botContainer.querySelector('.bot-name').innerText;
-        const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures';
+        const botType = botContainer.closest('#futures-section') ? 'futures' : 'spot';
         const exchange = botContainer.querySelector('select[name="exchange"]').value;
         const botStatus = this.checked;
-
-        // Save the state immediately in localStorage
-        localStorage.setItem(`botStatus-${botId}`, botStatus ? 'on' : 'off');
-
-        // Call function to update the backend
+        localStorage.setItem(`botStatus-${botId}-${botType}`, botStatus ? 'on' : 'off');
         handleBotStatusChange(botId, botName, botType, exchange, botStatus);
     });
 });
-
+          
