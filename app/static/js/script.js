@@ -135,7 +135,7 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
     closeFuturesBotConfigForm();
 });
 
-// Handle Bot Status Change Function 
+// Handle Bot Status Change Function
 async function handleBotStatusChange(botId, botName, botType, exchange, status) {
     console.log("Updating Bot Status:", { botId, botName, botType, exchange, status });
 
@@ -163,38 +163,24 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
 document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(checkbox => {
     checkbox.addEventListener('change', function () {
         const botStatus = this.checked;
-
-        // Find the closest bot container (specific to THIS bot)
+        
+        // Ensure the checkbox is inside a valid bot container
         const botContainer = this.closest('.bot-container');
-        if (!botContainer) {
-            console.error("Error: Bot container not found!");
-            return;
-        }
-
-        // Extract bot details
+        if (!botContainer) return;
+        
         const botId = botContainer.getAttribute('data-bot-id');
-        const botNameElement = botContainer.querySelector('.bot-name');
-        const botName = botNameElement ? botNameElement.innerText.trim() : "Unknown Bot";
-
-        // Ensure bot type is correctly assigned
-        const parentSection = botContainer.closest('#spot-section') ? 'spot' : botContainer.closest('#futures-section') ? 'futures' : 'unknown';
-
-        // Extract exchange value from the associated form or dropdown
-        const form = botContainer.closest('form');
-        if (!form) {
-            console.error("Error: Form not found for bot:", botName);
-            return;
-        }
+        const botName = botContainer.innerText.trim();
+        
+        // Correctly determine bot type
+        const botType = botContainer.closest('#futures-section') ? 'futures' : 'spot';
+        
+        // Extract exchange value
+        const form = botContainer.closest('form') || document;
         const exchangeSelect = form.querySelector('select[name="exchange"]');
-        const exchange = exchangeSelect ? exchangeSelect.value : "unknown";
-
-        // Debugging Output (Remove in Production)
-        console.log({
-            botId, botName, botType: parentSection, exchange, botStatus
-        });
-
-        // Update only the specific bot that was toggled
-        handleBotStatusChange(botId, botName, parentSection, exchange, botStatus);
+        const exchange = exchangeSelect ? exchangeSelect.value : 'unknown';
+        
+        // Update only the specific bot's status
+        handleBotStatusChange(botId, botName, botType, exchange, botStatus);
     });
 });
 
