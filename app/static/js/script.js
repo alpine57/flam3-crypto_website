@@ -136,7 +136,6 @@ document.getElementById('futures-bot-config-form').addEventListener('submit', as
 });
 
 // Handle Bot Status Change Function
-// Handle Bot Status Change Function
 async function handleBotStatusChange(botId, botName, botType, exchange, status) {
     console.log("Updating Bot Status:", { botId, botName, botType, exchange, status });
 
@@ -161,28 +160,24 @@ async function handleBotStatusChange(botId, botName, botType, exchange, status) 
 }
 
 // Add Event Listeners to All Toggle Switches
-document.querySelectorAll('.bot-container input[type="checkbox"]').forEach(checkbox => {
+document.querySelectorAll('input[type="checkbox"][name="bot-status"]').forEach(checkbox => {
     checkbox.addEventListener('change', function () {
         const botStatus = this.checked;
-        
-        // Ensure the checkbox is inside a valid bot container
+
+        // Find the closest bot container
         const botContainer = this.closest('.bot-container');
-        if (!botContainer) return;
+        const botId = botContainer.getAttribute('data-bot-id'); 
+        const botName = botContainer.innerText.trim(); 
+        const botType = botContainer.closest('#spot-section') ? 'spot' : 'futures';
 
-        const botId = botContainer.getAttribute('data-bot-id');
-        const botName = botContainer.innerText.trim();
+        // Find the correct form related to the bot
+        const form = this.closest('form');
 
-        // Correctly determine bot type
-        const botType = botContainer.closest('#futures-section') ? 'futures' : 'spot';
+        // Correctly fetch the exchange dropdown within the form
+        const exchange = form.querySelector('.futures-exchange, .spot-exchange').value;
 
-        // Extract exchange value
-        const form = botContainer.closest('form') || document;
-        const exchangeSelect = form.querySelector('select[name="exchange"]');
-        const exchange = exchangeSelect ? exchangeSelect.value : 'unknown';
-
-        // Update only the specific bot's status
+        // Call function to update bot status
         handleBotStatusChange(botId, botName, botType, exchange, botStatus);
     });
 });
 
-           

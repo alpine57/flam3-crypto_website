@@ -130,50 +130,51 @@
         </form>
     </div>
     <div id="futures-bot-config-container" class="form-container">
-        <span class="close-button" onclick="closeFuturesBotConfigForm()">X</span>
-        <h2 id="futures-bot-config-header">Futures Bot Configuration</h2>
-        <form id="futures-bot-config-form">
-             <label for="futures-exchange">Exchange:</label>
-            <select id="futures-exchange" name="exchange">
-                <option value="binance">Binance</option>
-                <option value="bybit">Bybit</option>
-            </select>
+    <span class="close-button" onclick="closeFuturesBotConfigForm()">X</span>
+    <h2 id="futures-bot-config-header">Futures Bot Configuration</h2>
+    <form id="futures-bot-config-form">
+        <label for="futures-exchange">Exchange:</label>
+        <select class="futures-exchange" name="exchange">
+            <option value="binance">Binance</option>
+            <option value="bybit">Bybit</option>
+        </select>
 
-            <label for="futures-api-key">API Key</label>
-            <input type="text" id="futures-api-key" name="api-key" required>
+        <label for="futures-api-key">API Key</label>
+        <input type="text" id="futures-api-key" name="api-key" required>
 
-            <label for="futures-api-secret">API Secret</label>
-            <input type="text" id="futures-api-secret" name="api-secret" required>
+        <label for="futures-api-secret">API Secret</label>
+        <input type="text" id="futures-api-secret" name="api-secret" required>
 
-            <label for="futures-trade-amount">Trade Amount</label>
-            <input type="number" id="futures-trade-amount" name="trade-amount" required>
+        <label for="futures-trade-amount">Trade Amount</label>
+        <input type="number" id="futures-trade-amount" name="trade-amount" required>
 
-            <label for="futures-trade-pair">Trade Pair</label>
-            <input type="text" id="futures-trade-pair" name="trade-pair" required>
+        <label for="futures-trade-pair">Trade Pair</label>
+        <input type="text" id="futures-trade-pair" name="trade-pair" required>
 
-            <label for="leverage">Leverage</label>
-            <input type="number" id="leverage" name="leverage" required>
+        <label for="leverage">Leverage</label>
+        <input type="number" id="leverage" name="leverage" required>
 
-            <label for="futures-time-frame">Time Frame</label>
-            <select id="futures-time-frame" name="time-frame" required>
-                <option value="1m">1m</option>
-                <option value="5m">5m</option>
-                <option value="15m">15m</option>
-                <option value="30m">30m</option>
-                <option value="1h">1h</option>
-                <option value="4h">4h</option>
-                <option value="1d">1d</option>
-            </select>
+        <label for="futures-time-frame">Time Frame</label>
+        <select id="futures-time-frame" name="time-frame" required>
+            <option value="1m">1m</option>
+            <option value="5m">5m</option>
+            <option value="15m">15m</option>
+            <option value="30m">30m</option>
+            <option value="1h">1h</option>
+            <option value="4h">4h</option>
+            <option value="1d">1d</option>
+        </select>
 
-            <label for="futures-bot-status">Bot Status</label>
-            <label class="switch">
-                <input type="checkbox" id="futures-bot-status" name="bot-status">
-                <span class="slider"></span>
-            </label>
+        <label for="futures-bot-status">Bot Status</label>
+        <label class="switch">
+            <input type="checkbox" class="futures-bot-status" name="bot-status">
+            <span class="slider"></span>
+        </label>
 
-            <button type="submit">Save Configuration</button>
-        </form>
-    </div>
+        <button type="submit">Save Configuration</button>
+    </form>
+</div>
+
 
 
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
